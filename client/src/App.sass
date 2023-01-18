@@ -1,0 +1,51 @@
+@font-face
+  font-family: "Roboto-Mono-Regular"
+  src: url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap") format("truetype")
+
+$background: #EEEEEE
+$text: #082032 
+$warning: #FEC260
+$warning-text: #082032 
+$error: #C02739
+$error-text: #f9e3db
+$success: #2e7e1d
+$success-text: #f8ffef
+$font-size: 1.2em
+
+
+@mixin box_shadow ($level)
+  @if $level == 1
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)
+  @else if $level == 2
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+  @else if $level == 3
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)
+  @else if $level == 4
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
+  @else if $level == 5
+    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)
+    
+.success
+    background-color: $success
+    color: $success-text
+
+.warning
+    background-color: $warning
+    color: $warning-text
+
+.error
+    background-color: $error
+    color: $error-text
+
+.hidden
+    display: none
+
+
+.app-container
+    display: flex
+    height: 100vh
+    width: 100vw
+    font-family: "Roboto-Mono-Regular", Courier, monospace
+    color: $text
+    font-size: $font-size
+    background-color: $background
