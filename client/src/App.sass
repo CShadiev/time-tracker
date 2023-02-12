@@ -1,13 +1,13 @@
-@font-face
-  font-family: "Roboto-Mono-Regular"
-  src: url("https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap") format("truetype")
+@import 'antd/dist/reset.css'
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap")
+
 
 $background: #EEEEEE
 $text: #082032 
 $warning: #FEC260
 $warning-text: #082032 
-$error: #C02739
-$error-text: #f9e3db
+$danger: #C02739
+$danger-text: #f9e3db
 $success: #2e7e1d
 $success-text: #f8ffef
 $font-size: 1.2em
@@ -25,27 +25,89 @@ $font-size: 1.2em
   @else if $level == 5
     box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)
     
-.success
-    background-color: $success
-    color: $success-text
 
-.warning
-    background-color: $warning
-    color: $warning-text
-
-.error
-    background-color: $error
-    color: $error-text
-
-.hidden
-    display: none
-
+body
+  display: flex
+  height: 100vh
+  width: 100vw
+  font-family: 'Roboto', sans-serif
+  > *
+    width: 100%
 
 .app-container
+  .task-panel
+    width: 18em
+    
+    .menu-item
+      display: flex
+      padding: 0 6px 0 2px
+      justify-content: space-between
+
+      .menu-item-label
+        overflow: hidden
+        text-overflow: ellipsis
+
+      .menu-item-control
+        margin-left: 1em
+
+.button-panel
+  padding: 3px 0
+
+.ant-card-head-title
+  font-weight: normal
+
+.countdown-timer
+  .countdown-timer-label
+    font-size: 8em
+  .countdown-timer-comment
     display: flex
-    height: 100vh
-    width: 100vw
-    font-family: "Roboto-Mono-Regular", Courier, monospace
-    color: $text
-    font-size: $font-size
-    background-color: $background
+    font-style: italic
+    justify-content: center
+
+.settings-item
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: .5em 0
+  width: 21em
+  
+  input
+    width: 65px
+
+.danger
+  color: $danger
+
+.success
+  color: $success
+
+.warning
+  color: $warning
+
+.editable-field
+  display: flex
+
+  .editable-field-control
+    margin-left: 1em
+    position: relative
+
+    button
+      position: absolute
+      top: 0
+      left: 0
+
+
+.task-info
+  div
+    display: flex
+
+    .info-group
+      display: flex
+      flex-direction: column
+      align-items: center
+      margin: 0 0.5em
+
+      .label
+        font-style: italic
+        font-size: .8em
+      .value
+        font-size: .8em

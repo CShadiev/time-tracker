@@ -1,0 +1,14 @@
+{
+  "token": {
+    "colorPrimary": "#124f7d",
+    "colorSuccess": "#2e7e1d",
+    "colorSuccessBg": "#f9fff6",
+    "colorSuccessBgHover": "#e6ffda",
+    "colorWarning": "#fec260",
+    "colorError": "#c02739",
+    "colorInfo": "#124f7d",
+    "colorBgBase": "#f9f9f9",
+    "colorBgMask": "rgba(0, 0, 0, 0.35)",
+    "fontFamily": "Roboto, sans-serif"
+  }
+}
