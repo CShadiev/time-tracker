@@ -25,6 +25,7 @@ const MainPage = () => {
           style={{
             display: "flex",
             flexDirection: "column",
+            width: "22em",
           }}
         >
           <CountDownTimer />

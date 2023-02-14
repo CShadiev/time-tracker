@@ -50,7 +50,6 @@ const initialState: TaskPanelState = {
 export const counterSlice = createSlice({
   name: "taskPanel",
   initialState,
-  // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     setMenuItems: (
       state,
