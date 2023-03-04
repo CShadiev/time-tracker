@@ -17,31 +17,7 @@ import { safeResetCountDown } from "../countDownTimer/countDownSlice";
 import { UpdateItemPayload } from "./taskPanelTypes";
 
 const initialState: TaskPanelState = {
-  menuItems: [
-    {
-      key: "1",
-      label: "Project One",
-      level: "project",
-      user_id: "1",
-      description: "This is a project",
-      completed_at: null,
-      created_at: "2023-01-01 00:00:00",
-      is_removed: false,
-      children: [
-        {
-          key: "1-1",
-          label: "Task One",
-          level: "task",
-          description: "",
-          project_id: "1",
-          created_at: "2023-01-01 00:00:00",
-          expected_time: null,
-          completed_at: null,
-          is_removed: false,
-        },
-      ],
-    },
-  ],
+  menuItems: [],
   openKeys: [],
   renamingItem: null,
   selectedItem: null,
@@ -103,6 +79,10 @@ export const counterSlice = createSlice({
           key: key,
           label: `New ${level}`,
           level,
+          created_at: new Date().toISOString(),
+          is_removed: false,
+          expected_time: null,
+          description: null,
         });
         state.openKeys.push(node.key);
       }

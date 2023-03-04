@@ -1,13 +1,26 @@
 import { TaskInfoState } from "./taskInfoTypes";
-import { createSlice } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 
-const initialState: TaskInfoState = {};
+const initialState: TaskInfoState = {
+  expectedDurationIsInEdit: false,
+};
 
 export const taskInfoSlice = createSlice({
   name: "taskInfo",
   initialState,
-  reducers: {},
+  reducers: {
+    _setExpectedDurationIsInEdit: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      state.expectedDurationIsInEdit = action.payload;
+    },
+  },
 });
 
-// export const {} = taskInfoSlice.actions;
+export const { _setExpectedDurationIsInEdit } =
+  taskInfoSlice.actions;
 export const taskInfoReducer = taskInfoSlice.reducer;

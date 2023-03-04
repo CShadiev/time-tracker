@@ -7,6 +7,7 @@ import counterReducer from "../features/counter/counterSlice";
 import { taskPanelReducer } from "../features/taskPanel/taskPanelSlice";
 import { countDownReducer } from "../features/countDownTimer/countDownSlice";
 import { sessionJournalReducer } from "../features/sessionJournal/sessionJournalSlice";
+import { taskInfoReducer } from "../features/taskInfo/taskInfoSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     taskPanel: taskPanelReducer,
     countDown: countDownReducer,
     sessionJournal: sessionJournalReducer,
+    taskInfo: taskInfoReducer,
   },
 });
 

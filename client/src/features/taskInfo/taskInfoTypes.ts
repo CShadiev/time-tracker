@@ -1,1 +1,3 @@
-export interface TaskInfoState {}
+export interface TaskInfoState {
+  expectedDurationIsInEdit: boolean;
+}

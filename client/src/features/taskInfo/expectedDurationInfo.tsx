@@ -1,4 +1,4 @@
-import { Input } from "antd";
+import { Input, InputNumber } from "antd";
 import { FC, useRef, useState, useEffect } from "react";
 import {
   useAppSelector,
@@ -8,30 +8,31 @@ import {
   selectCurrentItem,
   updateItem,
 } from "../taskPanel/taskPanelSlice";
+import { _setExpectedDurationIsInEdit } from "./taskInfoSlice";
 
-export const DescriptionField: FC = () => {
+export const ExpectedDurationInfo: FC = () => {
   const task = useAppSelector(selectCurrentItem);
   const inputRef = useRef<any>(null);
-  const [inEdit, setInEdit] = useState(false);
+  const inEdit = useAppSelector(
+    (s) => s.taskInfo.expectedDurationIsInEdit
+  );
   const [tempValue, setTempValue] = useState(
-    task?.description
+    task?.expected_time
   );
 
   const dispatch = useAppDispatch();
 
-  const saveValue = (value: string | null | undefined) => {
+  const setInEdit = (val: boolean) =>
+    dispatch(_setExpectedDurationIsInEdit(val));
+  const saveValue = (value: number | null | undefined) => {
     if (!task) {
-      return;
-    }
-
-    if (!(value || "")) {
       return;
     }
 
     dispatch(
       updateItem({
         key: task?.key,
-        description: value,
+        expected_time: (value && value * 60) || null,
       })
     );
   };
@@ -45,7 +46,7 @@ export const DescriptionField: FC = () => {
 
   // save on 'enter'
   const keyDownHandler = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && e.ctrlKey) {
+    if (e.key === "Enter") {
       if (inEdit) {
         saveValue(tempValue);
         setInEdit(false);
@@ -54,15 +55,18 @@ export const DescriptionField: FC = () => {
   };
 
   const changeHandler = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setTempValue(e.target.value);
+    setTempValue(parseInt(e.target.value));
   };
 
   // sync global state --> tempValue
   useEffect(() => {
-    setTempValue(task?.description);
-  }, [task?.description]);
+    setTempValue(
+      task?.expected_time &&
+        Math.floor(task.expected_time / 60)
+    );
+  }, [task?.expected_time]);
 
   // auto focus on edit
   useEffect(() => {
@@ -73,30 +77,23 @@ export const DescriptionField: FC = () => {
 
   return (
     <div
-      className="editable-field"
+      className="info-group expected-time"
       onClick={() => !inEdit && setInEdit(true)}
     >
+      <div className="label">expected time (minutes)</div>
       {!inEdit && (
-        <div className="task-description">
-          {(task?.description &&
-            task.description.split(/\r?\n/g).map((j, i) => (
-              <div
-                className="description-block"
-                key={`task-description-line-${i}`}
-              >
-                {j}
-                <br />
-              </div>
-            ))) ||
-            "No description"}
+        <div className="value">
+          {(task?.expected_time &&
+            Math.floor(task.expected_time / 60)) ||
+            "N/A"}
         </div>
       )}
       {inEdit && (
-        <Input.TextArea
+        <Input
+          type={"number"}
           ref={inputRef}
           value={tempValue || undefined}
-          placeholder="No description"
-          autoSize={{ minRows: 3, maxRows: 5 }}
+          placeholder={"N/A"}
           onKeyDown={keyDownHandler}
           onBlur={blurHandler}
           onChange={changeHandler}

@@ -5,7 +5,8 @@ import { TitleField } from "./titleField";
 import { selectCurrentItem } from "../taskPanel/taskPanelSlice";
 import { format } from "date-fns";
 import { parseISO } from "date-fns/esm";
-import { DescriptionField } from './descriptionField';
+import { DescriptionField } from "./descriptionField";
+import { ExpectedDurationInfo } from "./expectedDurationInfo";
 
 export const TaskInfo: React.FC = () => {
   const selectedTask = useAppSelector(selectCurrentItem);
@@ -20,7 +21,7 @@ export const TaskInfo: React.FC = () => {
           <TitleField />
           <DescriptionField />
           <Divider />
-          <div className="task-origin-dt">
+          <div className="task-info-panel">
             <div className={"info-group"}>
               <div className={"label"}>created</div>
               <div className={"value"}>
@@ -34,6 +35,7 @@ export const TaskInfo: React.FC = () => {
                 {selectedTask.completed_at || "N/A"}
               </div>
             </div>
+            <ExpectedDurationInfo />
           </div>
         </div>
       )}

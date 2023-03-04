@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Button, Menu } from "antd";
+import { Button, Card, Menu } from "antd";
 import {
   useAppDispatch,
   useAppSelector,
@@ -37,23 +37,29 @@ export const TaskPanel: FC = () => {
 
   return (
     <div className="task-panel">
-      <div className="button-panel">
-        <Button
-          shape="default"
+      <Card title="Tasks">
+        <div className="button-panel">
+          <Button
+            shape="default"
+            style={{ width: "100%" }}
+            onClick={clickHandler}
+          >
+            <PlusOutlined /> new project
+          </Button>
+        </div>
+        <Menu
+          openKeys={openKeys}
+          onOpenChange={(keys) =>
+            dispatch(setOpenKeys(keys))
+          }
+          onSelect={(item) =>
+            dispatch(selectItem(item.key))
+          }
+          items={itemsWithComponents}
           style={{ width: "100%" }}
-          onClick={clickHandler}
-        >
-          <PlusOutlined /> new project
-        </Button>
-      </div>
-      <Menu
-        openKeys={openKeys}
-        onOpenChange={(keys) => dispatch(setOpenKeys(keys))}
-        onSelect={(item) => dispatch(selectItem(item.key))}
-        items={itemsWithComponents}
-        style={{ width: "100%" }}
-        mode={"inline"}
-      />
+          mode={"inline"}
+        />
+      </Card>
     </div>
   );
 };

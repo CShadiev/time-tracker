@@ -7,6 +7,7 @@ import { TaskPanel } from "./features/taskPanel/taskPanel";
 import { SwitchNotification } from "./features/countDownTimer/switchNotification";
 import { Settings } from "./features/countDownTimer/settings";
 import { TaskInfo } from "./features/taskInfo/taskInfo";
+import { DummyDataHandler } from "./features/dummyData/dummyDataHandler";
 
 const MainPage = () => {
   return (
@@ -18,6 +19,7 @@ const MainPage = () => {
         alignItems: "flex-start",
       }}
     >
+      <DummyDataHandler />
       <SwitchNotification />
       <TaskPanel />
       <div style={{ display: "flex", marginLeft: "1em" }}>
