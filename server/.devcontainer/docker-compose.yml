@@ -1,0 +1,9 @@
+version: '3'
+services:
+  time-tracker-dev:
+    image: mcr.microsoft.com/devcontainers/python:0-3.10
+    container_name: time-tracker-dev
+    network_mode: "container:gluetun"
+    volumes:
+      - ../../:/workspaces:cached
+    command: sleep infinity

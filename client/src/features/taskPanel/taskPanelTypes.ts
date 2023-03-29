@@ -1,14 +1,14 @@
 // high-order abstraction of panel menu items
 export interface MenuItem {
   key: string;
-  label: string;
+  label: string; // max_len = 32
   level: "project" | "task" | "subtask";
   children?: MenuItem[];
 }
 
 export interface Project extends MenuItem {
   user_id: string;
-  description: string | null;
+  description: string | null; // max_len = 512
   created_at: string;
   completed_at: string | null;
   is_removed: boolean;
