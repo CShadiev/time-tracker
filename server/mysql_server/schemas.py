@@ -2,7 +2,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey, DateTime, Integer
 from sqlalchemy import Boolean
 from mysql_server import MySQLServerBase
-from typing import Literal, Optional
+from typing import Optional
 from datetime import datetime
 
 
@@ -14,7 +14,7 @@ class DBUser(MySQLServerBase):
     password_hash: Mapped[str] = mapped_column(String(128))
 
 
-class Project(MySQLServerBase):
+class DBProject(MySQLServerBase):
     __tablename__ = 'project'
 
     key: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -23,7 +23,6 @@ class Project(MySQLServerBase):
     description: Mapped[Optional[str]] = mapped_column(
         String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
-    level: Literal['project'] = 'project'
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -34,7 +33,7 @@ class DBTask(MySQLServerBase):
     user: Mapped[str] = mapped_column(ForeignKey(DBUser.username))
     label: Mapped[str] = mapped_column(String(32))
     level: Mapped[str] = mapped_column(String(32))
-    project_id: Mapped[str] = mapped_column(ForeignKey(Project.key))
+    project_id: Mapped[str] = mapped_column(ForeignKey(DBProject.key))
     description: Mapped[Optional[str]] = mapped_column(
         String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
@@ -48,7 +47,7 @@ class DBTask(MySQLServerBase):
         Boolean, default=False)
 
 
-class Session(MySQLServerBase):
+class DBSession(MySQLServerBase):
     __tablename__ = 'session'
 
     key: Mapped[str] = mapped_column(String(36), primary_key=True)

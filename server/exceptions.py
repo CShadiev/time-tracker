@@ -1,9 +1,14 @@
 from fastapi import HTTPException
 
 
-class InputValidationError(HTTPException):
-    def __init__(self, message: str):
-        super().__init__(status_code=400, detail=message)
+class PermissionDeniedError(HTTPException):
+    def __init__(self, detail: str | None = None):
+        if detail is not None:
+            _detail = f': {detail}'
+        else:
+            _detail = ''
+        super().__init__(
+            status_code=403, detail=_detail)
 
 
 class UserExistsError(HTTPException):
@@ -34,3 +39,14 @@ class IncorrectPasswordError(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=401, detail='Incorrect password')
+
+
+class ProjectNotFoundError(HTTPException):
+    def __init__(self, key: str):
+        super().__init__(
+            status_code=404, detail=f'Project {key} not found')
+
+
+class ForeignProjectError(PermissionDeniedError):
+    def __init__(self):
+        super().__init__(detail='Project not owned by user')

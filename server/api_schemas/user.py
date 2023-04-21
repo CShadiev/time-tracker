@@ -1,29 +1,98 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from mysql_server import database
 from mysql_server.schemas import DBUser
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from passlib.hash import bcrypt_sha256
 import config
 from jose import jwt
 import datetime as dt
 import exceptions as exc
+from validators import username_validator
+from validators import password_validator
 
 
-def user_exists(username: str) -> bool:
-    """Checks whether a user with given username
-    already exists in the database.
-    """
-    username = username.lower()
-    with database.create_session() as session:
-        qry = select(DBUser).where(DBUser.username == username)
-        user = session.scalar(qry)
+UsernameField = Field(description=username_validator.__doc__ or '')
+PasswordField = Field(description=password_validator.__doc__ or '')
 
-    return user is not None
+
+class SignRequest(BaseModel):
+    """Request body for signing up a new user and signing in."""
+    username: str = UsernameField
+    password: str = PasswordField
+
+    @validator('username')
+    def validate_username(cls, value):
+        return username_validator(value)
+
+    @validator('password')
+    def validate_password(cls, value):
+        return password_validator(value)
 
 
 class User(BaseModel):
-    username: str
-    password_hash: str
+    username: str = UsernameField
+    password_hash: str = PasswordField
+
+    @validator('username')
+    def validate_username(cls, value):
+        return username_validator(value)
+
+    @classmethod
+    def exists(cls, username: str) -> bool:
+        """Checks whether a user with given username
+        already exists in the database.
+        """
+        username = username.lower()
+        with database.create_session() as session:
+            qry = select(DBUser).where(DBUser.username == username)
+            user = session.scalar(qry)
+
+        return user is not None
+
+    @classmethod
+    def create(cls, username: str, password: str) -> 'User':
+        """Creates a new user and returns User object."""
+        # check if user already exists
+        password_validator(password)
+
+        if cls.exists(username):
+            raise exc.UserExistsError(username)
+
+        user = cls(
+            username=username,
+            password_hash=bcrypt_sha256.hash(password))
+        return user
+
+    @classmethod
+    def get_by_username(cls, username: str) -> 'User':
+        """Get user by username."""
+        username = username.lower()
+        with database.create_session() as session:
+            qry = select(DBUser).where(DBUser.username == username)
+            user = session.scalar(qry)
+
+        if user is None:
+            raise exc.UserNotFoundError
+
+        return cls(
+            username=user.username,
+            password_hash=user.password_hash)
+
+    @classmethod
+    def get_by_token(cls, token: str) -> 'User':
+        """Returns User object from data decoded from JWT token.
+
+        If valid_till < now, it will raise HTTPException.
+        """
+
+        data = jwt.decode(token, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
+        now = dt.datetime.now(tz=config.TIMEZONE)
+        valid_till = dt.datetime.fromisoformat(data['valid_till_ISO'])
+
+        if (now > valid_till):
+            raise exc.TokenExpiredError
+
+        return cls(**data)
 
     def sign_up(self):
         """Add user to the database."""
@@ -46,42 +115,9 @@ class User(BaseModel):
         data['valid_till_ISO'] = expire_ts.isoformat()
         return jwt.encode(data, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
 
-
-def create_user(username: str, password: str) -> User:
-    """Creates a new user and returns User object."""
-    if user_exists(username):
-        raise exc.UserExistsError('Username taken')
-
-    user = User(
-        username=username,
-        password_hash=bcrypt_sha256.hash(password))
-    return user
-
-
-def get_user_by_username(username: str) -> User | None:
-    """finds username in the database and returns User object.
-
-    if user not found, returns None.
-    """
-    with database.create_session() as session:
-        qry = select(DBUser).where(DBUser.username == username)
-        user = session.scalar(qry)
-
-        if user:
-            return User.parse_obj(user.__dict__)
-    return None
-
-
-def get_user_by_token(token: str) -> User:
-    """Returns User object from data decoded from JWT token.
-
-    If valid_till < now, it will raise HTTPException.
-    """
-
-    data = jwt.decode(token, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
-    if (dt.datetime.now(tz=config.TIMEZONE) >
-            dt.datetime.fromisoformat(data['valid_till_ISO'])):
-
-        raise exc.TokenExpiredError
-
-    return User(**data)
+    def remove(self):
+        """Remove user from the database."""
+        with database.create_session() as session:
+            qry = delete(DBUser).where(DBUser.username == self.username)
+            session.execute(qry)
+            session.commit()
