@@ -1,11 +1,53 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from pydantic import BaseModel, Field, validator
+from typing import Optional, Literal, Iterable
+from typing import overload
 import datetime as dt
 from uuid import uuid4
 from config import TIMEZONE
 from mysql_server import database
 from mysql_server.schemas import DBTask
 from sqlalchemy import select, update, delete
+import exceptions as exc
+from validators import datetime_validator
+
+
+LabelField = Field(max_length=32)
+DescriptionField = Field(max_length=512, default=None)
+ExpectedTimeField = Field(ge=0, default=None)
+
+
+@overload
+def parse_task(
+        data: DBTask) -> 'Task':
+    ...
+
+
+@overload
+def parse_task(
+        data: Iterable[DBTask]) -> list['Task']:
+    ...
+
+
+def parse_task(data: DBTask | Iterable[DBTask]) -> 'Task | list[Task]':
+    """Parses a DBTask object or a list of DBTask objects
+    into a Task object or a list of Task objects.
+    """
+    if isinstance(data, DBTask):
+        data.created_at = data.created_at.replace(tzinfo=TIMEZONE)
+        if data.completed_at is not None:
+            data.completed_at = data.completed_at.replace(tzinfo=TIMEZONE)
+        return Task.parse_obj(data.__dict__)
+
+    elif isinstance(data, Iterable):
+        for entry in data:
+            entry.created_at = entry.created_at.replace(tzinfo=TIMEZONE)
+            if entry.completed_at is not None:
+                entry.completed_at = entry.completed_at.replace(
+                    tzinfo=TIMEZONE)
+        return [Task.parse_obj(entry.__dict__) for entry in data]
+
+    else:
+        raise TypeError('Invalid data type')
 
 
 class ModifyTaskRequest(BaseModel):
@@ -15,27 +57,51 @@ class ModifyTaskRequest(BaseModel):
     only the following fields are allowed to be modified:
     label, description, expected_time.
     """
-    key: str
-    label: Optional[str] = Field(max_length=32)
-    description: Optional[str] = Field(max_length=512, default=None)
-    expected_time: Optional[int] = None
+    label: Optional[str] = LabelField
+    description: Optional[str] = DescriptionField
+    expected_time: Optional[int] = ExpectedTimeField
+
+
+class CreateTaskRequest(BaseModel):
+    """
+    Request body for creating a task.
+    """
+    label: str = LabelField
+    description: Optional[str] = DescriptionField
+    expected_time: Optional[int] = ExpectedTimeField
 
 
 class Task(BaseModel):
     """
-    expected_time is in seconds.
+    Task object.
+
+    Note: expected_time is in seconds.
+    Datetime objects must be timezone-aware.
     """
     key: str
     user: str
-    label: str = Field(max_length=32)
-    description: Optional[str] = Field(max_length=512, default=None)
+    label: str = LabelField
+    description: Optional[str] = DescriptionField
     level: Literal['task', 'subtask']
     project_id: str
     created_at: dt.datetime
     completed_at: Optional[dt.datetime] = None
-    expected_time: Optional[int] = None
+    expected_time: Optional[int] = ExpectedTimeField
     parent_id: Optional[str] = None
     is_archived: bool = False
+
+    class Config:
+        json_encoders = {
+            dt.datetime: lambda x: x.isoformat()
+        }
+
+    @validator('created_at')
+    def validate_created_at(cls, v):
+        return datetime_validator(v)
+
+    @validator('completed_at')
+    def validate_completed_at(cls, v):
+        return datetime_validator(v)
 
     @classmethod
     def create(
@@ -57,6 +123,36 @@ class Task(BaseModel):
             parent_id=parent_id)
         return task
 
+    @classmethod
+    def find_one(cls, key: str) -> 'Task':
+        """Finds a task in database and returns Task object."""
+        with database.create_session() as session:
+            db_task = session.execute(
+                select(DBTask).where(DBTask.key == key)).scalar()
+            if db_task is None:
+                raise exc.TaskNotFoundError(key)
+        return parse_task(db_task)
+
+    @classmethod
+    def find_all(
+            cls, user: str | None = None,
+            project_id: str | None = None) -> list['Task']:
+        """Returns all tasks.
+        Either user or project_id must be provided.
+
+        Returns the list of Task objects.
+        """
+        with database.create_session() as session:
+            query = select(DBTask)
+            if user is None and project_id is None:
+                raise ValueError('either user or project_id must be provided')
+            if user is not None:
+                query = query.where(DBTask.user == user)
+            if project_id is not None:
+                query = query.where(DBTask.project_id == project_id)
+            tasks = session.execute(query).scalars().all()
+            return parse_task(tasks)
+
     def insert(self):
         """Saves task to database."""
         with database.create_session() as session:
@@ -76,70 +172,52 @@ class Task(BaseModel):
             session.add(db_task)
             session.commit()
 
-    @classmethod
-    def update(cls, request: ModifyTaskRequest):
+    def modify(self, request: ModifyTaskRequest):
         """Updates task in database."""
-        values = request.dict(exclude={'key'})
+        values = request.dict()
         with database.create_session() as session:
             session.execute(
                 update(DBTask).where(
-                    DBTask.key == request.key).values(**values))
+                    DBTask.key == self.key).values(**values))
             session.commit()
 
-    @classmethod
-    def archive(cls, key: str):
+    def archive(self):
         """Archives task in database."""
         with database.create_session() as session:
             session.execute(
                 update(DBTask).where(
-                    DBTask.key == key).values(is_archived=True))
+                    DBTask.key == self.key).values(is_archived=True))
             session.commit()
 
-    @classmethod
-    def restore(cls, key: str):
+    def restore(self):
         """Restores task in database."""
         with database.create_session() as session:
             session.execute(
                 update(DBTask).where(
-                    DBTask.key == key).values(is_archived=False))
+                    DBTask.key == self.key).values(is_archived=False))
             session.commit()
 
-    @classmethod
-    def complete(cls, key: str):
+    def complete(self):
         """Completes task in database."""
         with database.create_session() as session:
             session.execute(
                 update(DBTask).where(
-                    DBTask.key == key).values(
+                    DBTask.key == self.key).values(
                         completed_at=dt.datetime.now(tz=TIMEZONE)))
             session.commit()
 
-    @classmethod
-    def uncomplete(cls, key: str):
+    def uncomplete(self):
         """Uncompletes task in database."""
         with database.create_session() as session:
             session.execute(
                 update(DBTask).where(
-                    DBTask.key == key).values(completed_at=None))
+                    DBTask.key == self.key).values(completed_at=None))
             session.commit()
 
-    @classmethod
-    def find_all(
-            cls, user: str | None = None,
-            project_id: str | None = None):
-        """Returns all tasks."""
+    def remove(self):
+        """Removes task from database.
+        Generally not supposed to be used.
+        """
         with database.create_session() as session:
-            query = select(DBTask)
-            if user is not None:
-                query = query.where(DBTask.user == user)
-            if project_id is not None:
-                query = query.where(DBTask.project_id == project_id)
-            tasks = session.execute(query).scalars().all()
-            return [cls.parse_obj(task.__dict__) for task in tasks]
-
-    @classmethod
-    def remove(cls, key: str):
-        """Removes task from database."""
-        with database.create_session() as session:
-            session.execute(delete(DBTask).where(DBTask.key == key))
+            session.execute(delete(DBTask).where(DBTask.key == self.key))
             session.commit()

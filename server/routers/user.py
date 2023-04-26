@@ -10,7 +10,7 @@ router = APIRouter(prefix='/users')
 
 
 @router.post('/')
-async def sign_up(data: SignRequest):
+def sign_up(data: SignRequest):
     """sign up a new user.
     """
     user = User.create(data.username, data.password)
@@ -44,7 +44,7 @@ async def sign_in(data: SignRequest, response: Response):
 
 
 @router.get('/me')
-def get_username(access_token: Atk = None):
+def get_username(access_token: str | None = Atk()):
     """returns username of the user who sent the request."""
     user = validate_access_token(access_token)
     return {'username': user.username}

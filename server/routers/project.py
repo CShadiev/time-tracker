@@ -10,7 +10,7 @@ router = APIRouter(prefix='/projects')
 
 
 @router.get('/')
-def get_projects(access_token: Atk = None) -> list[Project]:
+def get_projects(access_token: str | None = Atk()) -> list[Project]:
     """returns all projects of the user who sent the request."""
     user = validate_access_token(access_token)
     return Project.find_all(user.username)
@@ -18,7 +18,8 @@ def get_projects(access_token: Atk = None) -> list[Project]:
 
 @router.post('/')
 def create_project(
-        request: CreateProjectRequest, access_token: Atk = None) -> str:
+        request: CreateProjectRequest,
+        access_token: str | None = Atk()) -> str:
     """creates a new project.
     Returns the key of the created project.
     """
@@ -30,10 +31,10 @@ def create_project(
 
 @router.post('/{project_key}')
 def modify_project(project_key: str, request: ModifyProjectRequest,
-                   access_token: Atk = None):
+                   access_token: str | None = Atk()):
     """modifies a project."""
     user = validate_access_token(access_token)
-    project = Project.find(project_key)
+    project = Project.find_one(project_key)
     if project.user != user.username:
         raise exc.ForeignProjectError
 
@@ -42,10 +43,10 @@ def modify_project(project_key: str, request: ModifyProjectRequest,
 
 
 @router.get('/{project_key}/archive')
-def archive_project(project_key: str, access_token: Atk = None):
+def archive_project(project_key: str, access_token: str | None = Atk()):
     """archives a project."""
     user = validate_access_token(access_token)
-    project = Project.find(project_key)
+    project = Project.find_one(project_key)
     if project.user != user.username:
         raise exc.ForeignProjectError
 
@@ -54,10 +55,10 @@ def archive_project(project_key: str, access_token: Atk = None):
 
 
 @router.get('/{project_key}/restore')
-def restore_project(project_key: str, access_token: Atk = None):
+def restore_project(project_key: str, access_token: str | None = Atk()):
     """restores a project."""
     user = validate_access_token(access_token)
-    project = Project.find(project_key)
+    project = Project.find_one(project_key)
     if project.user != user.username:
         raise exc.ForeignProjectError
 

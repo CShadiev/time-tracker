@@ -1,4 +1,5 @@
 import re
+import datetime as dt
 
 
 def username_validator(username: str) -> str:
@@ -38,3 +39,14 @@ def password_validator(password: str) -> str:
         allowed_chars, password) is not None, errmsg
 
     return password
+
+
+def datetime_validator(ts: dt.datetime):
+    """Validates a datetime object.
+    Converts to tz-aware format, if not already,
+    using config.TIMEZONE parameter.
+    """
+    assert isinstance(ts, dt.datetime), 'Invalid datetime object'
+    assert ts.tzinfo is not None, 'Datetime object must be tz-aware'
+
+    return ts

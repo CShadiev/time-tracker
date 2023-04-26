@@ -9,11 +9,11 @@ def clean_up():
     tasks = Task.find_all(user.username)
     for task in tasks:
         if task.level == 'subtask':
-            Task.remove(task.key)
+            task.remove()
 
     for task in tasks:
         if task.level == 'task':
-            Task.remove(task.key)
+            task.remove()
 
     for project in projects:
         project.remove()
@@ -21,7 +21,7 @@ def clean_up():
     user.remove()
 
 
-def scenario_1():
+def use_case_1():
     """
     Create project, rename label, add two tasks and one subtask.
     """
@@ -32,7 +32,7 @@ def scenario_1():
     project.insert()
     modify_request = ModifyProjectRequest(
         label='My best project')
-    project = Project.find(project.key)
+    project = Project.find_one(project.key)
     project.modify(modify_request)
     project = Project.find_all(user.username)[0]
     assert project.label == 'My best project'

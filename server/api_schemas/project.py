@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from mysql_server.schemas import DBProject
 from typing import Optional
 import datetime as dt
@@ -7,10 +7,42 @@ from config import TIMEZONE
 from mysql_server import database
 from sqlalchemy import select, update, delete
 import exceptions as exc
+from validators import datetime_validator
+from typing import Iterable, overload
 
 
 LabelField = Field(max_length=32)
 DescriptionField = Field(max_length=512, default=None)
+
+
+@overload
+def parse_project(
+        data: DBProject) -> 'Project':
+    ...
+
+
+@overload
+def parse_project(
+        data: Iterable[DBProject]) -> list['Project']:
+    ...
+
+
+def parse_project(
+        data: DBProject | Iterable[DBProject]) -> 'Project | list[Project]':
+    """Parses a DBProject object or a list of DBProject objects
+    into a Project object or a list of Project objects.
+    """
+    if isinstance(data, DBProject):
+        data.created_at = data.created_at.replace(tzinfo=TIMEZONE)
+        return Project.parse_obj(data.__dict__)
+
+    elif isinstance(data, Iterable):
+        for entry in data:
+            entry.created_at = entry.created_at.replace(tzinfo=TIMEZONE)
+        return [Project.parse_obj(entry.__dict__) for entry in data]
+
+    else:
+        raise TypeError('Invalid data type')
 
 
 class ModifyProjectRequest(BaseModel):
@@ -46,6 +78,10 @@ class Project(BaseModel):
             dt.datetime: lambda x: x.isoformat()
         }
 
+    @validator('created_at')
+    def validate_created_at(cls, v):
+        return datetime_validator(v)
+
     @classmethod
     def create(
             cls, user: str, label: str,
@@ -61,14 +97,15 @@ class Project(BaseModel):
         return project
 
     @classmethod
-    def find(cls, key: str) -> 'Project':
+    def find_one(cls, key: str) -> 'Project':
         """Returns a project."""
         with database.create_session() as session:
             qry = select(DBProject).where(DBProject.key == key)
             db_project = session.execute(qry).scalars().first()
             if not db_project:
                 raise exc.ProjectNotFoundError(key)
-        return cls.parse_obj(db_project.__dict__)
+
+        return parse_project(db_project)
 
     @classmethod
     def find_all(cls, user: str) -> list['Project']:
@@ -78,8 +115,7 @@ class Project(BaseModel):
                 DBProject.user == user)
             db_projects = session.execute(qry).scalars().all()
 
-        return [cls.parse_obj(db_project.__dict__) for db_project
-                in db_projects]
+        return parse_project(db_projects)
 
     def insert(self):
         """Saves project to database."""
@@ -97,7 +133,7 @@ class Project(BaseModel):
     def modify(self, request: ModifyProjectRequest) -> None:
         """Modifies a project."""
         with database.create_session() as session:
-            values = request.dict()
+            values = request.dict(exclude_unset=True)
             stmt = update(DBProject).where(
                 DBProject.key == self.key).values(
                     **values)

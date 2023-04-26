@@ -1,9 +1,10 @@
-from typing import Annotated
 from fastapi import Cookie, Response
 from api_schemas.user import User
 import exceptions as exc
 
-Atk = Annotated[str | None, Cookie(alias='time-tracker-app')]
+
+def Atk():
+    return Cookie(alias='time-tracker-app')
 
 
 def validate_access_token(access_token: str | None) -> User:
