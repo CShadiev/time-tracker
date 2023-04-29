@@ -2,7 +2,7 @@ from fastapi.routing import APIRouter
 from fastapi import Response
 from api_dependencies import validate_access_token, Atk
 from api_schemas.user import User, SignRequest
-import config
+from config import config
 import exceptions as exc
 
 
@@ -36,7 +36,7 @@ async def sign_in(data: SignRequest, response: Response):
 
     token = user.generate_access_token()
     max_age = round(config.TOKEN_TIMEOUT_TD.total_seconds())
-    use_secure_cookie = config.DEV_MODE is False
+    use_secure_cookie = config.USE_SECURE_COOKIES
     response.status_code = 201
     response.set_cookie('time-tracker-app', token, max_age=max_age,
                         secure=use_secure_cookie, httponly=True, path='/')

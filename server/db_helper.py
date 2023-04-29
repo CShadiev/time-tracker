@@ -16,13 +16,13 @@ class DBConfig(BaseModel):
 
 class DBHelper:
     def __init__(self, config: DBConfig) -> None:
-        self.engine = None
-
         if config.TYPE == 'mysql':
             c_string = URL.create(
                 'mysql', config.USER, config.PASSWORD,
                 config.HOST, config.PORT, config.DATABASE)
             self.engine = create_engine(c_string)
+        else:
+            raise ValueError('Invalid database type')
 
     def create_session(self):
         return Session(self.engine)

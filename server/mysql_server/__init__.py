@@ -1,13 +1,14 @@
 from sqlalchemy.orm import DeclarativeBase
 from db_helper import DBConfig, DBHelper
+from config import config
 
 
 config = DBConfig(
-    HOST='datalion.ru',
-    PORT=3306,
-    USER='root',
-    PASSWORD='88EmptyCompanyCells00',
-    DATABASE='time_tracker_app')
+    HOST=config.DB_HOST,
+    PORT=config.DB_PORT,
+    USER=config.DB_USERNAME,
+    PASSWORD=config.DB_PASSWORD,
+    DATABASE=config.DB_NAME)
 
 
 class MySQLServerBase(DeclarativeBase):

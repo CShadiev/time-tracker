@@ -3,7 +3,7 @@ from mysql_server import database
 from mysql_server.schemas import DBUser
 from sqlalchemy import select, delete
 from passlib.hash import bcrypt_sha256
-import config
+from config import config
 from jose import jwt
 import datetime as dt
 import exceptions as exc

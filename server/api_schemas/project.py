@@ -3,7 +3,7 @@ from mysql_server.schemas import DBProject
 from typing import Optional
 import datetime as dt
 from uuid import uuid4
-from config import TIMEZONE
+from config import config
 from mysql_server import database
 from sqlalchemy import select, update, delete
 import exceptions as exc
@@ -13,6 +13,8 @@ from typing import Iterable, overload
 
 LabelField = Field(max_length=32)
 DescriptionField = Field(max_length=512, default=None)
+
+TIMEZONE = config.TIMEZONE
 
 
 @overload
