@@ -1,0 +1,9 @@
+version: '3'
+services:
+  time-tracker-client:
+    image: mcr.microsoft.com/devcontainers/typescript-node:0-20
+    container_name: time-tracker-client
+    network_mode: "container:gluetun"
+    volumes:
+      - ../../../:/workspaces:cached
+    command: sleep infinity
