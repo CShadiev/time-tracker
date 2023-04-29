@@ -71,6 +71,7 @@ class CreateTaskRequest(BaseModel):
     label: str = LabelField
     description: Optional[str] = DescriptionField
     expected_time: Optional[int] = ExpectedTimeField
+    parent_id: Optional[str] = None
 
 
 class Task(BaseModel):
@@ -107,21 +108,21 @@ class Task(BaseModel):
 
     @classmethod
     def create(
-            cls, user: str, label: str,
+            cls, user: str,
             project_id: str,
-            description: Optional[str] = None,
-            expected_time: Optional[int] = None,
-            parent_id: Optional[str] = None) -> 'Task':
+            request: CreateTaskRequest) -> 'Task':
         """Creates a new task and returns Task object."""
+        parent_id = request.parent_id
+
         task = cls(
             key=str(uuid4()),
             user=user,
-            label=label,
-            description=description,
+            label=request.label,
+            description=request.description,
             level='task' if parent_id is None else 'subtask',
             project_id=project_id,
             created_at=dt.datetime.now(tz=TIMEZONE),
-            expected_time=expected_time,
+            expected_time=request.expected_time,
             parent_id=parent_id)
         return task
 

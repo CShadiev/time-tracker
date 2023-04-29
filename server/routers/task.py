@@ -25,8 +25,8 @@ def create_task(
     Returns the key of the created task.
     """
     user = validate_access_token(access_token)
-    task = Task.create(user.username, request.label,
-                       project_key, request.description)
+    task = Task.create(user=user.username,
+                       project_id=project_key, request=request)
     task.insert()
     return task.key
 
