@@ -19,7 +19,7 @@ class DBProject(MySQLServerBase):
 
     key: Mapped[str] = mapped_column(String(36), primary_key=True)
     user: Mapped[str] = mapped_column(ForeignKey(DBUser.username))
-    label: Mapped[str] = mapped_column(String(128))
+    label: Mapped[str] = mapped_column(String(32))
     description: Mapped[Optional[str]] = mapped_column(
         String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
@@ -31,7 +31,7 @@ class DBTask(MySQLServerBase):
 
     key: Mapped[str] = mapped_column(String(36), primary_key=True)
     user: Mapped[str] = mapped_column(ForeignKey(DBUser.username))
-    label: Mapped[str] = mapped_column(String(128))
+    label: Mapped[str] = mapped_column(String(32))
     level: Mapped[str] = mapped_column(String(32))
     project_id: Mapped[str] = mapped_column(ForeignKey(DBProject.key))
     description: Mapped[Optional[str]] = mapped_column(
