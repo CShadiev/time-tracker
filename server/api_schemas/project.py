@@ -11,7 +11,7 @@ from validators import datetime_validator
 from typing import Iterable, overload
 
 
-LabelField = Field(max_length=32)
+LabelField = Field(max_length=128)
 DescriptionField = Field(max_length=512, default=None)
 
 TIMEZONE = config.TIMEZONE

@@ -11,7 +11,7 @@ import exceptions as exc
 from validators import datetime_validator
 
 
-LabelField = Field(max_length=32)
+LabelField = Field(max_length=128)
 DescriptionField = Field(max_length=512, default=None)
 ExpectedTimeField = Field(ge=0, default=None)
 
