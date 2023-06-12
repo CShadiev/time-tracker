@@ -8,40 +8,43 @@ import { SwitchNotification } from "./features/countDownTimer/switchNotification
 import { Settings } from "./features/countDownTimer/settings";
 import { TaskInfo } from "./features/taskInfo/taskInfo";
 import { DummyDataHandler } from "./features/dummyData/dummyDataHandler";
+import { Auth } from "./features/auth/auth";
 
 const MainPage = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexFlow: "row",
-        padding: "1em 2em",
-        alignItems: "flex-start",
-      }}
-    >
-      <DummyDataHandler />
-      <SwitchNotification />
-      <TaskPanel />
-      <div style={{ display: "flex", marginLeft: "1em" }}>
+    <Auth>
+      <div
+        style={{
+          display: "flex",
+          flexFlow: "row",
+          padding: "1em 2em",
+          alignItems: "flex-start",
+        }}
+      >
+        <DummyDataHandler />
+        <SwitchNotification />
+        <TaskPanel />
+        <div style={{ display: "flex", marginLeft: "1em" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              width: "22em",
+            }}
+          >
+            <CountDownTimer />
+            <div style={{ height: "1em" }} />
+            <TaskInfo />
+          </div>
+        </div>
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "22em",
-          }}
+          className="timer-settings-container"
+          style={{ marginLeft: "1em" }}
         >
-          <CountDownTimer />
-          <div style={{ height: "1em" }} />
-          <TaskInfo />
+          <Settings />
         </div>
       </div>
-      <div
-        className="timer-settings-container"
-        style={{ marginLeft: "1em" }}
-      >
-        <Settings />
-      </div>
-    </div>
+    </Auth>
   );
 };
 

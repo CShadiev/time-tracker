@@ -8,18 +8,23 @@ import reportWebVitals from "./reportWebVitals";
 import { baseName } from "./app/config";
 import { BrowserRouter } from "react-router-dom";
 import { CookiesProvider } from "react-cookie";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);
 
+const queryClient = new QueryClient();
+
 root.render(
   <React.StrictMode>
     <CookiesProvider>
-      <Provider store={store}>
-        <BrowserRouter basename={baseName}>
-          <App />
-        </BrowserRouter>
-      </Provider>
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          <BrowserRouter basename={baseName}>
+            <App />
+          </BrowserRouter>
+        </Provider>
+      </QueryClientProvider>
     </CookiesProvider>
   </React.StrictMode>
 );
