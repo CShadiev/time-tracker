@@ -4,6 +4,12 @@ import exceptions as exc
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from fastapi import Depends
+from config import config
+from re import sub
+
+
+# make sure there are no multiple "/" signs
+token_url = sub(r'//+', '/', config.UVICORN_HOME + '/users/sign_in/')
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/sign_in/")
