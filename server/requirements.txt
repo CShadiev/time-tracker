@@ -9,4 +9,3 @@ uvicorn==0.21
 python-dotenv==1.0
 tzdata==2023
 python-multipart==0.0.6
-```
