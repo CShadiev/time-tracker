@@ -1,10 +1,13 @@
 from fastapi import Cookie, Response
 from api_schemas.user import User
 import exceptions as exc
+from fastapi.security import OAuth2PasswordBearer
+from typing import Annotated
+from fastapi import Depends
 
 
-def Atk():
-    return Cookie(alias='time-tracker-app')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/sign_in/")
+AccessToken = Annotated[str | None, Depends(oauth2_scheme)]
 
 
 def validate_access_token(access_token: str | None) -> User:

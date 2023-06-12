@@ -1,5 +1,6 @@
 from fastapi.routing import APIRouter
-from api_dependencies import validate_access_token, Atk
+from api_dependencies import validate_access_token
+from api_dependencies import AccessToken
 from api_dependencies import NoContentResponse
 from api_schemas.task import Task, ModifyTaskRequest
 from api_schemas.task import CreateTaskRequest
@@ -11,7 +12,7 @@ router = APIRouter(prefix='/tasks')
 
 @router.get('/')
 def get_tasks(
-        project_key: str, access_token: str | None = Atk()) -> list[Task]:
+        project_key: str, access_token: AccessToken) -> list[Task]:
     """returns all tasks of the user."""
     user = validate_access_token(access_token)
     return Task.find_all(user.username, project_key)
@@ -20,7 +21,7 @@ def get_tasks(
 @router.post('/')
 def create_task(
         project_key: str, request: CreateTaskRequest,
-        access_token: str | None = Atk()) -> str:
+        access_token: AccessToken) -> str:
     """creates a new task.
     Returns the key of the created task.
     """
@@ -31,9 +32,9 @@ def create_task(
     return task.key
 
 
-@router.post('/{task_key}/modify')
+@router.post('/{task_key}/modify/')
 def modify_task(task_key: str, request: ModifyTaskRequest,
-                access_token: str | None = Atk()):
+                access_token: AccessToken):
     """modifies a task."""
     user = validate_access_token(access_token)
     task = Task.find_one(task_key)
@@ -44,9 +45,9 @@ def modify_task(task_key: str, request: ModifyTaskRequest,
     return NoContentResponse()
 
 
-@router.get('/{task_key}/archive')
+@router.get('/{task_key}/archive/')
 def archive_task(
-        task_key: str, access_token: str | None = Atk()):
+        task_key: str, access_token: AccessToken):
     """archives a task."""
     user = validate_access_token(access_token)
     task = Task.find_one(task_key)
@@ -57,8 +58,8 @@ def archive_task(
     return NoContentResponse()
 
 
-@router.get('/{task_key}/restore')
-def restore_task(task_key: str, access_token: str | None = Atk()):
+@router.get('/{task_key}/restore/')
+def restore_task(task_key: str, access_token: AccessToken):
     """restores a task."""
     user = validate_access_token(access_token)
     task = Task.find_one(task_key)
@@ -69,8 +70,8 @@ def restore_task(task_key: str, access_token: str | None = Atk()):
     return NoContentResponse()
 
 
-@router.get('/{task_key}/complete')
-def complete_task(task_key: str, access_token: str | None = Atk()):
+@router.get('/{task_key}/complete/')
+def complete_task(task_key: str, access_token: AccessToken):
     """completes a task."""
     user = validate_access_token(access_token)
     task = Task.find_one(task_key)
@@ -81,8 +82,8 @@ def complete_task(task_key: str, access_token: str | None = Atk()):
     return NoContentResponse()
 
 
-@router.get('/{task_key}/uncomplete')
-def uncomplete_task(task_key: str, access_token: str | None = Atk()):
+@router.get('/{task_key}/uncomplete/')
+def uncomplete_task(task_key: str, access_token: AccessToken):
     """uncompletes a task."""
     user = validate_access_token(access_token)
     task = Task.find_one(task_key)
