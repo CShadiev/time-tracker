@@ -7,11 +7,9 @@ export interface MenuItem {
 }
 
 export interface Project extends MenuItem {
-  user_id: string;
   description: string | null; // max_len = 512
   created_at: string;
-  completed_at: string | null;
-  is_removed: boolean;
+  is_archived: boolean;
   children?: Task[];
 }
 
@@ -21,13 +19,12 @@ export interface Task extends MenuItem {
   created_at: string;
   completed_at: string | null;
   expected_time: number | null; // in seconds
-  is_removed: boolean;
+  is_archived: boolean;
   level: "task";
   children?: Subtask[];
 }
 
-export interface Subtask
-  extends Omit<Task, "level" | "children"> {
+export interface Subtask extends Omit<Task, "level" | "children"> {
   parent_task_id: string;
   level: "subtask";
 }

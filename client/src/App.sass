@@ -1,146 +1,178 @@
 @import 'antd/dist/reset.css'
 @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap")
 
-
 $background: #EEEEEE
-$text: #082032 
+$text: #082032
 $warning: #FEC260
-$warning-text: #082032 
+$warning-text: #082032
 $danger: #C02739
 $danger-text: #f9e3db
 $success: #2e7e1d
 $success-text: #f8ffef
 $font-size: 1.2em
 
-
 @mixin box_shadow ($level)
-  @if $level == 1
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)
-  @else if $level == 2
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
-  @else if $level == 3
-    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)
-  @else if $level == 4
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
-  @else if $level == 5
-    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)
-    
+    @if $level == 1
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)
+    @else if $level == 2
+        box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+    @else if $level == 3
+        box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)
+    @else if $level == 4
+        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)
+    @else if $level == 5
+        box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)
+
+@mixin for-phone-only
+    @media (max-width: 599px)
+        @content
+
+@mixin for-tablet-portrait-up
+    @media (min-width: 600px)
+        @content
+
+@mixin for-tablet-landscape-up
+    @media (min-width: 900px)
+        @content
+
+@mixin for-desktop-up
+    @media (min-width: 1200px)
+        @content
+
+@mixin for-big-desktop-up
+    @media (min-width: 1800px)
+        @content
 
 body
-  display: flex
-  height: 100vh
-  width: 100vw
-  font-family: 'Roboto', sans-serif
-  font-size: $font-size
-  > *
-    width: 100%
+    display: flex
+    height: 100vh
+    width: 100vw
+    font-family: 'Roboto', sans-serif
+    font-size: $font-size
+    > *
+        width: 100%
 
 .app-container
-  .task-panel
-    width: 24em
-    
-    .ant-card-body
-      padding: 0
-      overflow: hidden
+    height: 100%
+    display: flex
+    flexFlow: row
+    padding: 1em 2em
+    alignItems: flex-start
 
-      ul
-        border: none
-    
-    .menu-item
-      display: flex
-      padding: 0 6px 0 2px
-      justify-content: space-between
+    .task-panel
+        width: 24em
 
-      .menu-item-label
-        overflow: hidden
-        text-overflow: ellipsis
+        .ant-card-body
+            padding: 0
+            overflow: hidden
 
-      .menu-item-control
-        margin-left: 1em
+            ul
+                border: none
+
+        .menu-item
+            display: flex
+            padding: 0 6px 0 2px
+            justify-content: space-between
+
+            .menu-item-label
+                overflow: hidden
+                text-overflow: ellipsis
+
+            .menu-item-control
+                margin-left: 1em
 
 .button-panel
-  padding: 3px 0
+    padding: 3px 0
 
 .ant-card-head-title
-  font-weight: normal
+    font-weight: normal
 
 .countdown-timer
-  .countdown-timer-label
-    font-size: 8em
-  .countdown-timer-comment
-    display: flex
-    font-style: italic
-    justify-content: center
+    .countdown-timer-label
+        font-size: 8em
+        text-align: center
+    .countdown-timer-comment
+        display: flex
+        font-style: italic
+        justify-content: center
 
 .settings-item
-  display: flex
-  justify-content: space-between
-  align-items: center
-  padding: .5em 0
-  width: 21em
-  
-  input
-    width: 65px
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: .5em 0
+    width: 21em
+
+    input
+        width: 65px
 
 .danger
-  color: $danger
+    color: $danger
 
 .success
-  color: $success
+    color: $success
 
 .warning
-  color: $warning
+    color: $warning
 
 .editable-field
-  display: flex
-
-  .editable-field-control
-    margin-left: 1em
-    position: relative
-
-    button
-      position: absolute
-      top: 0
-      left: 0
-
-
-.task-info-panel
-  display: flex
-  justify-content: space-evenly
-
-.task-info
-  .task-title
-    font-size: 1.3em
-    margin-bottom: 0.3em
-
-  .task-description
-    width: 100%
-    flex-direction: column
-    cursor: text
-    overflow: auto
-    max-height: 10em
-
-    .description-block
-      display: block
-      overflow-wrap: anywhere
-
-  div
     display: flex
 
-    .info-group
-      display: flex
-      flex-direction: column
-      align-items: center
-      margin: 0 0.5em
+    .editable-field-control
+        margin-left: 1em
+        position: relative
 
-      .label
-        font-style: italic
-        font-size: .8em
-      .value
-        font-size: .8em
+        button
+            position: absolute
+            top: 0
+            left: 0
+
+.task-info-panel
+    display: flex
+    justify-content: space-evenly
+
+.task-info
+    .task-title
+        font-size: 1.3em
+        margin-bottom: 0.3em
+
+    .task-description
+        width: 100%
+        flex-direction: column
+        cursor: text
+        overflow: auto
+        max-height: 10em
+
+        .description-block
+            display: block
+            overflow-wrap: anywhere
+
+    div
+        display: flex
+
+        .info-group
+            display: flex
+            flex-direction: column
+            align-items: center
+            margin: 0 0.5em
+
+            .label
+                font-style: italic
+                font-size: .8em
+            .value
+                font-size: .8em
 
 .info-group.expected-time
-  input
-    font-size: .8em
-    width: 8em
-    padding: 1px 10px
+    input
+        font-size: .8em
+        width: 8em
+        padding: 1px 10px
+
+.auth
+    width: 100%
+    height: 100%
+    display: flex
+    justify-content: center
+    .sign-in-container
+        width: 100%
+        max-width: 60rem

@@ -2,58 +2,20 @@ import { ConfigProvider } from "antd";
 import { Route, Routes } from "react-router-dom";
 import themeConfig from "./Ant Design Theme.json";
 import "./App.sass";
-import { CountDownTimer } from "./features/countDownTimer/countDownTimer";
-import { TaskPanel } from "./features/taskPanel/taskPanel";
-import { SwitchNotification } from "./features/countDownTimer/switchNotification";
-import { Settings } from "./features/countDownTimer/settings";
-import { TaskInfo } from "./features/taskInfo/taskInfo";
-import { DummyDataHandler } from "./features/dummyData/dummyDataHandler";
 import { Auth } from "./features/auth/auth";
-
-const MainPage = () => {
-  return (
-    <Auth>
-      <div
-        style={{
-          display: "flex",
-          flexFlow: "row",
-          padding: "1em 2em",
-          alignItems: "flex-start",
-        }}
-      >
-        <DummyDataHandler />
-        <SwitchNotification />
-        <TaskPanel />
-        <div style={{ display: "flex", marginLeft: "1em" }}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              width: "22em",
-            }}
-          >
-            <CountDownTimer />
-            <div style={{ height: "1em" }} />
-            <TaskInfo />
-          </div>
-        </div>
-        <div
-          className="timer-settings-container"
-          style={{ marginLeft: "1em" }}
-        >
-          <Settings />
-        </div>
-      </div>
-    </Auth>
-  );
-};
+import { AuthInterceptor } from "./features/auth/authInterceptor";
+import { Home } from "./features/home/home";
+import { Dashboard } from "./features/home/dashboard";
 
 export const App = () => {
   return (
     <div className={"app-container"}>
       <ConfigProvider theme={themeConfig}>
+        <AuthInterceptor />
         <Routes>
-          <Route path="/" element={<MainPage />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Home />} />
         </Routes>
       </ConfigProvider>
     </div>

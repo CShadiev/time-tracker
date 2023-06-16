@@ -1,13 +1,9 @@
-import {
-  configureStore,
-  ThunkAction,
-  Action,
-} from "@reduxjs/toolkit";
+import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit";
 import { taskPanelReducer } from "../features/taskPanel/taskPanelSlice";
 import { countDownReducer } from "../features/countDownTimer/countDownSlice";
 import { sessionJournalReducer } from "../features/sessionJournal/sessionJournalSlice";
 import { taskInfoReducer } from "../features/taskInfo/taskInfoSlice";
-import { authSliceReducer } from "../features/auth/autSlice";
+import { authSliceReducer } from "../features/auth/authSlice";
 
 export const store = configureStore({
   reducer: {

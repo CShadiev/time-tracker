@@ -1,24 +1,27 @@
-import { Button, Card, Col, Input, Row } from "antd"
-import './auth.sass';
+import { Button, Card, Col, Input, Row } from "antd";
+import "./auth.sass";
 import { useState } from "react";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { apiBase } from "../../app/config";
-
+import { AccessTokenResponse } from "./authTypes";
+import { useAppDispatch } from "../../app/hooks";
+import { setAccessToken } from "./authSlice";
 
 export const SignInForm: React.FC = () => {
-  const [username, setUsername] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const dispatch = useAppDispatch();
 
-  const signIn = useMutation({
-    mutationFn: (data: { username: string, password: string }) => {
-      document.cookie = 'test=test';
-      return axios.post(apiBase + '/users/sign_in', {
-        username: data.username,
-        password: data.password,
-      }, { withCredentials: true })
-    },
-  })
+  const signIn = useMutation(async () => {
+    const response = await axios.post(apiBase + "/users/token/", {
+      username: username,
+      password: password,
+    });
+    const respData: AccessTokenResponse = response.data;
+    localStorage.setItem("access_token", respData.access_token);
+    dispatch(setAccessToken(respData.access_token));
+  });
 
   const userNameHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -28,31 +31,51 @@ export const SignInForm: React.FC = () => {
     setPassword(e.target.value);
   };
 
-  const allogSignin = (username && password) && !signIn.isLoading;
-
-  console.log(signIn.data);
+  const allowSignin = username && password && !signIn.isLoading;
 
   return (
-    <div className={'sign-in-container'}>
-      <Row justify={'center'}>
-        <Col xs={20} sm={10}>
-          <Card title={'Sign In'}>
+    <div
+      className={"sign-in-container"}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          if (allowSignin) {
+            signIn.mutate();
+          }
+        }
+      }}
+    >
+      <Row justify={"center"}>
+        <Col xs={24} sm={12} md={10}>
+          <Card title={"Sign In"}>
             <Input
               value={username}
-              placeholder={'Username'}
+              placeholder={"Username"}
               onChange={userNameHandler}
             />
-            <div className='spacer' />
+            <div className="spacer" />
             <Input.Password
               value={password}
-              placeholder={'Password'}
+              placeholder={"Password"}
               onChange={passwordHandler}
             />
-            <div className='controls'>
+            {signIn.isError && (
+              <div
+                className="danger"
+                style={{
+                  marginTop: "1em",
+                  fontSize: ".9em",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                Invalid username or password
+              </div>
+            )}
+            <div className="controls">
               <Button
-                type={'primary'}
-                disabled={!allogSignin}
-                onClick={() => signIn.mutate({ username, password })}
+                type={"primary"}
+                disabled={!allowSignin}
+                onClick={() => signIn.mutate()}
               >
                 Sign In
               </Button>
@@ -61,5 +84,5 @@ export const SignInForm: React.FC = () => {
         </Col>
       </Row>
     </div>
-  )
-}
+  );
+};

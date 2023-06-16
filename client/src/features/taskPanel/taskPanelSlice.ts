@@ -1,7 +1,4 @@
-import {
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   TaskPanelState,
   MenuItem,
@@ -27,10 +24,7 @@ export const counterSlice = createSlice({
   name: "taskPanel",
   initialState,
   reducers: {
-    setMenuItems: (
-      state,
-      action: PayloadAction<Project[]>
-    ) => {
+    setMenuItems: (state, action: PayloadAction<Project[]>) => {
       state.menuItems = action.payload;
     },
     addProject: (state) => {
@@ -40,16 +34,11 @@ export const counterSlice = createSlice({
         label: "New Project",
         level: "project",
         description: "",
-        user_id: "1",
         created_at: new Date().toISOString(),
-        completed_at: null,
-        is_removed: false,
+        is_archived: false,
       });
     },
-    removeProject: (
-      state,
-      action: PayloadAction<string>
-    ) => {
+    removeProject: (state, action: PayloadAction<string>) => {
       state.menuItems = state.menuItems.filter(
         (item) => item.key !== action.payload
       );
@@ -68,8 +57,7 @@ export const counterSlice = createSlice({
       }
 
       if (node) {
-        const level =
-          node.level === "project" ? "task" : "subtask";
+        const level = node.level === "project" ? "task" : "subtask";
         if (!node.children) {
           node.children = [];
         }
@@ -88,15 +76,9 @@ export const counterSlice = createSlice({
       }
     },
     removeTask: (state, action: PayloadAction<string>) => {
-      deleteNodes(
-        state.menuItems,
-        (j: any) => j.key === action.payload
-      );
+      deleteNodes(state.menuItems, (j: any) => j.key === action.payload);
     },
-    setRenamingItem: (
-      state,
-      action: PayloadAction<string | null>
-    ) => {
+    setRenamingItem: (state, action: PayloadAction<string | null>) => {
       state.renamingItem = action.payload;
     },
     renameItem: (
@@ -119,23 +101,16 @@ export const counterSlice = createSlice({
         node.label = action.payload.label;
       }
     },
-    setOpenKeys: (
-      state,
-      action: PayloadAction<string[]>
-    ) => {
+    setOpenKeys: (state, action: PayloadAction<string[]>) => {
       state.openKeys = action.payload;
     },
     _selectItem: (state, action: PayloadAction<string>) => {
       state.selectedItem = action.payload;
     },
-    updateItem: (
-      state,
-      action: PayloadAction<UpdateItemPayload>
-    ) => {
+    updateItem: (state, action: PayloadAction<UpdateItemPayload>) => {
       const node = findNode(
         state.menuItems,
-        (node: Task | Subtask) =>
-          node.key === action.payload.key
+        (node: Task | Subtask) => node.key === action.payload.key
       );
 
       if (!node) {
@@ -160,9 +135,7 @@ export const {
   updateItem,
 } = counterSlice.actions;
 
-export const selectCurrentItem = (
-  state: RootState
-): Task | Subtask | null => {
+export const selectCurrentItem = (state: RootState): Task | Subtask | null => {
   const id = state.taskPanel.selectedItem;
   if (!id) {
     return null;
