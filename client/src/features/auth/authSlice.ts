@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { User, authState } from "./authTypes";
+import { RootState } from "../../app/store";
 
 const initialState: authState = {
   access_token: null,
@@ -24,3 +25,11 @@ export const authSlice = createSlice({
 
 export const { setUser, setAccessToken, unsetAccessToken } = authSlice.actions;
 export const authSliceReducer = authSlice.reducer;
+
+export const accessTokenSelector = (state: RootState) => {
+  const localAccessToken = localStorage.getItem("access_token");
+  if (localAccessToken) {
+    return localAccessToken;
+  }
+  return state.auth.access_token;
+};

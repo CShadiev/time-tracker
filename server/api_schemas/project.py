@@ -9,6 +9,7 @@ from sqlalchemy import select, update, delete
 import exceptions as exc
 from validators import datetime_validator
 from typing import Iterable, overload
+from api_schemas.task import Task
 
 
 LabelField = Field(max_length=32)
@@ -18,19 +19,16 @@ TIMEZONE = config.TIMEZONE
 
 
 @overload
-def parse_project(
-        data: DBProject) -> 'Project':
+def parse_project(data: DBProject) -> "Project":
     ...
 
 
 @overload
-def parse_project(
-        data: Iterable[DBProject]) -> list['Project']:
+def parse_project(data: Iterable[DBProject]) -> list["Project"]:
     ...
 
 
-def parse_project(
-        data: DBProject | Iterable[DBProject]) -> 'Project | list[Project]':
+def parse_project(data: DBProject | Iterable[DBProject]) -> "Project | list[Project]":
     """Parses a DBProject object or a list of DBProject objects
     into a Project object or a list of Project objects.
     """
@@ -44,7 +42,7 @@ def parse_project(
         return [Project.parse_obj(entry.__dict__) for entry in data]
 
     else:
-        raise TypeError('Invalid data type')
+        raise TypeError("Invalid data type")
 
 
 class ModifyProjectRequest(BaseModel):
@@ -54,6 +52,7 @@ class ModifyProjectRequest(BaseModel):
     only two fields are allowed to be modified:
     label and description.
     """
+
     label: Optional[str] = LabelField
     description: Optional[str] = DescriptionField
 
@@ -62,6 +61,7 @@ class CreateProjectRequest(BaseModel):
     """
     Request body for creating a project.
     """
+
     label: str = LabelField
     description: Optional[str] = DescriptionField
 
@@ -72,34 +72,32 @@ class Project(BaseModel):
     label: str = LabelField
     description: Optional[str] = DescriptionField
     created_at: dt.datetime
-    level: str = 'project'
+    level: str = "project"
     is_archived: bool = False
+    children: list["Task"] | None = None
 
     class Config:
-        json_encoders = {
-            dt.datetime: lambda x: x.isoformat()
-        }
+        json_encoders = {dt.datetime: lambda x: x.isoformat()}
 
-    @validator('created_at')
+    @validator("created_at")
     def validate_created_at(cls, v):
         return datetime_validator(v)
 
     @classmethod
-    def create(
-            cls, user: str, label: str,
-            description: Optional[str] = None) -> 'Project':
+    def create(cls, user: str, label: str, description: Optional[str] = None) -> "Project":
         """Creates a new project and returns Project object."""
         project = cls(
             key=str(uuid4()),
             user=user,
             label=label,
             description=description,
-            created_at=dt.datetime.now(tz=TIMEZONE))
+            created_at=dt.datetime.now(tz=TIMEZONE),
+        )
 
         return project
 
     @classmethod
-    def find_one(cls, key: str) -> 'Project':
+    def find_one(cls, key: str) -> "Project":
         """Returns a project."""
         with database.create_session() as session:
             qry = select(DBProject).where(DBProject.key == key)
@@ -110,14 +108,34 @@ class Project(BaseModel):
         return parse_project(db_project)
 
     @classmethod
-    def find_all(cls, user: str) -> list['Project']:
+    def find_all(cls, user: str, recursive: bool = False) -> list["Project"]:
         """Returns all projects of a user."""
         with database.create_session() as session:
-            qry = select(DBProject).where(
-                DBProject.user == user)
+            qry = (
+                select(DBProject).where(DBProject.user == user).order_by(DBProject.created_at)
+            )
             db_projects = session.execute(qry).scalars().all()
 
-        return parse_project(db_projects)
+        projects = parse_project(db_projects)
+        if recursive:
+            tasks = Task.find_all(user=user)
+            # put subtasks in parent task's children list
+            task_map: dict[str, Task] = {}
+            for task in tasks:
+                # assume that subtasks always follow parent tasks
+                if task.parent_id is None:
+                    task_map[task.key] = task
+                if task.parent_id is not None:
+                    parent_task = task_map[task.parent_id]
+                    if parent_task.children is None:
+                        parent_task.children = []
+                    parent_task.children.append(task)
+
+            for project in projects:
+                project.children = [
+                    task for task in task_map.values() if task.project_id == project.key
+                ]
+        return projects
 
     def insert(self):
         """Saves project to database."""
@@ -128,7 +146,8 @@ class Project(BaseModel):
                 label=self.label,
                 description=self.description,
                 created_at=self.created_at,
-                is_archived=self.is_archived)
+                is_archived=self.is_archived,
+            )
             session.add(db_project)
             session.commit()
 
@@ -136,27 +155,23 @@ class Project(BaseModel):
         """Modifies a project."""
         with database.create_session() as session:
             values = request.dict(exclude_unset=True)
-            stmt = update(DBProject).where(
-                DBProject.key == self.key).values(
-                    **values)
+            stmt = update(DBProject).where(DBProject.key == self.key).values(**values)
             session.execute(stmt)
             session.commit()
 
     def archive(self) -> None:
         """Archives a project."""
         with database.create_session() as session:
-            stmt = update(DBProject).where(
-                DBProject.key == self.key).values(
-                    is_archived=True)
+            stmt = update(DBProject).where(DBProject.key == self.key).values(is_archived=True)
             session.execute(stmt)
             session.commit()
 
     def restore(self) -> None:
         """Restores a project."""
         with database.create_session() as session:
-            stmt = update(DBProject).where(
-                DBProject.key == self.key).values(
-                    is_archived=False)
+            stmt = (
+                update(DBProject).where(DBProject.key == self.key).values(is_archived=False)
+            )
             session.execute(stmt)
             session.commit()
 
@@ -165,7 +180,6 @@ class Project(BaseModel):
         Normally, this method should not be used.
         """
         with database.create_session() as session:
-            stmt = delete(DBProject).where(
-                DBProject.key == self.key)
+            stmt = delete(DBProject).where(DBProject.key == self.key)
             session.execute(stmt)
             session.commit()

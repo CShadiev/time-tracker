@@ -1,26 +1,20 @@
 import { FC } from "react";
 import { Button, Card, Menu } from "antd";
-import {
-  useAppDispatch,
-  useAppSelector,
-} from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { PlusOutlined } from "@ant-design/icons";
 import { mapTree } from "../utils";
 import { MenuItemRenderer } from "./menuItemRenderer";
 import { MenuItem } from "./taskPanelTypes";
-import {
-  addProject,
-  selectItem,
-  setOpenKeys,
-} from "./taskPanelSlice";
+import { addProject, selectItem, setOpenKeys } from "./taskPanelSlice";
+import { useQuery } from "@tanstack/react-query";
+import { getProjectsQuery } from "../../api/tasks";
 
 export const TaskPanel: FC = () => {
-  const items = useAppSelector(
-    (s) => s.taskPanel.menuItems
-  );
-  const openKeys = useAppSelector(
-    (s) => s.taskPanel.openKeys
-  );
+  const items = useAppSelector((s) => s.taskPanel.menuItems);
+  const { data: projects } = useQuery(["projects"], getProjectsQuery);
+
+  console.log(projects);
+  const openKeys = useAppSelector((s) => s.taskPanel.openKeys);
   const mapFunc = (item: MenuItem) =>
     mapTree(item, (j: MenuItem) => ({
       key: j.key,
@@ -49,12 +43,8 @@ export const TaskPanel: FC = () => {
         </div>
         <Menu
           openKeys={openKeys}
-          onOpenChange={(keys) =>
-            dispatch(setOpenKeys(keys))
-          }
-          onSelect={(item) =>
-            dispatch(selectItem(item.key))
-          }
+          onOpenChange={(keys) => dispatch(setOpenKeys(keys))}
+          onSelect={(item) => dispatch(selectItem(item.key))}
           items={itemsWithComponents}
           style={{ width: "100%" }}
           mode={"inline"}

@@ -1,9 +1,10 @@
 version: '3'
 services:
   time-tracker-dev:
-    image: mcr.microsoft.com/devcontainers/python:0-3.10
+    build:
+      context: ../
+      dockerfile: Dockerfile
     container_name: time-tracker-dev
-    network_mode: "container:gluetun"
     volumes:
-      - ../../:/workspaces:cached
+      - c:/Users/cshad/OneDrive/desktop/projects/time-tracker:/time-tracker
     command: sleep infinity

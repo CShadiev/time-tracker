@@ -1,13 +1,12 @@
-from fastapi import Cookie, Response
+from fastapi import Response
 from api_schemas.user import User
 import exceptions as exc
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from fastapi import Depends
-from config import config
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='users/sign_in/')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/sign_in/")
 AccessToken = Annotated[str | None, Depends(oauth2_scheme)]
 
 

@@ -12,7 +12,7 @@ export interface ApiProject {
 }
 
 // get projects, including tasks and subtasks
-export const getProjects = async (): Promise<ApiProject[]> => {
-  const response = await axios.get(apiBase + "/projects");
+export const getProjectsQuery = async (): Promise<ApiProject[]> => {
+  const response = await axios.get(apiBase + "/projects/");
   return response.data;
 };

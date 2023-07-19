@@ -24,7 +24,7 @@ class Config(BaseModel):
     DB_USERNAME: str
     DB_PASSWORD: str
     DB_NAME: str
-    TYPE: Literal['mysql'] = 'mysql'
+    TYPE: Literal["mysql"] = "mysql"
 
     UVICORN_HOME: str
     UVICORN_PORT: int
@@ -32,22 +32,22 @@ class Config(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @validator('TOKEN_TIMEOUT_TD', pre=True)
+    @validator("TOKEN_TIMEOUT_TD", pre=True)
     def validate_token_timeout(cls, v: str | None):
         assert v is not None
         return timedelta(days=int(v))
 
-    @validator('USE_SECURE_COOKIES', pre=True)
+    @validator("USE_SECURE_COOKIES", pre=True)
     def validate_secure_cookies(cls, v: str | None):
         assert v is not None
         return bool(int(v))
 
-    @validator('TIMEZONE', pre=True)
+    @validator("TIMEZONE", pre=True)
     def validate_timezone(cls, v: str | None):
         assert v is not None
         return ZoneInfo(v)
 
-    @validator('UVICORN_PORT', pre=True)
+    @validator("UVICORN_PORT", pre=True)
     def validate_uvicorn_port(cls, v: str | None):
         assert v is not None
         return int(v)
