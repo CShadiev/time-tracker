@@ -28,7 +28,7 @@ def create_project(request: CreateProjectRequest, access_token: AccessToken) -> 
     return project.key
 
 
-@router.post("/{project_key}/modify")
+@router.post("/{project_key}/modify/")
 def modify_project(
     project_key: str, request: ModifyProjectRequest, access_token: AccessToken
 ):
