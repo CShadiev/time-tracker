@@ -135,6 +135,9 @@ class Project(BaseModel):
                 project.children = [
                     task for task in task_map.values() if task.project_id == project.key
                 ]
+                if len(project.children) == 0:
+                    project.children = None
+
         return projects
 
     def insert(self):
