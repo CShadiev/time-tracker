@@ -149,6 +149,8 @@ class Task(BaseModel):
                 query = query.where(DBTask.user == user)
             if project_id is not None:
                 query = query.where(DBTask.project_id == project_id)
+
+            query = query.order_by(DBTask.created_at)
             tasks = session.execute(query).scalars().all()
             return parse_task(tasks)
 
