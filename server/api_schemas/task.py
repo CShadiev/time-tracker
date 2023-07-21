@@ -182,7 +182,7 @@ class Task(BaseModel):
 
     def modify(self, request: ModifyTaskRequest):
         """Updates task in database."""
-        values = request.dict()
+        values = request.dict(exclude_unset=True)
         with database.create_session() as session:
             session.execute(update(DBTask).where(DBTask.key == self.key).values(**values))
             session.commit()
