@@ -10,6 +10,7 @@ import exceptions as exc
 from validators import datetime_validator
 from typing import Iterable, overload
 from api_schemas.task import Task
+from sqlalchemy.sql.expression import false
 
 
 LabelField = Field(max_length=32)
@@ -114,6 +115,7 @@ class Project(BaseModel):
             qry = (
                 select(DBProject).where(DBProject.user == user).order_by(DBProject.created_at)
             )
+            qry = qry.where(DBProject.is_archived == false())
             db_projects = session.execute(qry).scalars().all()
 
         projects = parse_project(db_projects)

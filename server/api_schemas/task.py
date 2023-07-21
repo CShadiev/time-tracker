@@ -7,6 +7,7 @@ from config import config
 from mysql_server import database
 from mysql_server.schemas import DBTask
 from sqlalchemy import select, update, delete
+from sqlalchemy.sql.expression import false
 import exceptions as exc
 from validators import datetime_validator
 
@@ -154,6 +155,7 @@ class Task(BaseModel):
             if project_id is not None:
                 query = query.where(DBTask.project_id == project_id)
 
+            query = query.where(DBTask.is_archived == false())
             query = query.order_by(DBTask.created_at)
             tasks = session.execute(query).scalars().all()
             return parse_task(tasks)
