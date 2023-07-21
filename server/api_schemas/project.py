@@ -128,10 +128,11 @@ class Project(BaseModel):
                 if task.parent_id is None:
                     task_map[task.key] = task
                 if task.parent_id is not None:
-                    parent_task = task_map[task.parent_id]
-                    if parent_task.children is None:
-                        parent_task.children = []
-                    parent_task.children.append(task)
+                    if task.parent_id in task_map:
+                        parent_task = task_map[task.parent_id]
+                        if parent_task.children is None:
+                            parent_task.children = []
+                        parent_task.children.append(task)
 
             for project in projects:
                 project.children = [
