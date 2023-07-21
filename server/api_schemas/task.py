@@ -126,13 +126,17 @@ class Task(BaseModel):
         return task
 
     @classmethod
-    def find_one(cls, key: str) -> "Task":
+    def find_one(cls, key: str, username: str | None = None) -> "Task":
         """Finds a task in database and returns Task object."""
         with database.create_session() as session:
             db_task = session.execute(select(DBTask).where(DBTask.key == key)).scalar()
             if db_task is None:
                 raise exc.TaskNotFoundError(key)
-        return parse_task(db_task)
+        task = parse_task(db_task)
+        if username:
+            if task.user != username:
+                raise exc.ForeignTaskError
+        return task
 
     @classmethod
     def find_all(cls, user: str | None = None, project_id: str | None = None) -> list["Task"]:
