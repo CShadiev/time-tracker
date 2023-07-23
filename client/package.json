@@ -2,7 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/",
+  "homepage": "/time-tracker/",
   "dependencies": {
     "@ant-design/icons": "^5.0.0",
     "@react-spring/web": "^9.6.1",
