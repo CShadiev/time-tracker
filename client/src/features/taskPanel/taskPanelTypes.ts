@@ -1,4 +1,6 @@
 // high-order abstraction of panel menu items
+export type PanelMenuItem = Project | Task | Subtask;
+
 export interface MenuItem {
   key: string;
   label: string; // max_len = 32
@@ -10,6 +12,7 @@ export interface Project extends MenuItem {
   description: string | null; // max_len = 512
   created_at: string;
   is_archived: boolean;
+  level: "project";
   children?: Task[];
 }
 
@@ -34,6 +37,7 @@ export interface TaskPanelState {
   openKeys: string[];
   renamingItem: string | null;
   selectedItem: string | null;
+  selectedLevel: MenuItem["level"] | null;
 }
 
 export type TaskOrSubtask = Task | Subtask;

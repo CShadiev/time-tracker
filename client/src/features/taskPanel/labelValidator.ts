@@ -1,11 +1,13 @@
 export const labelValidator = (
   label: string | null | undefined
-): boolean => {
-  if (!label) {
-    return false;
+): string | null => {
+  let val = label;
+  if (!val) {
+    return null;
   }
-  if (label.trim().length === 0) {
-    return false;
+  val = val.trim();
+  if (val.length === 0) {
+    return null;
   }
-  return true;
+  return val;
 };

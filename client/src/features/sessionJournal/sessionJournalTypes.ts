@@ -1,11 +1,19 @@
 export interface SessionJournalItem {
-  id: string;
-  expected_time: number | null; // in seconds
-  time: number; // in seconds
+  key: string;
+  duration: number; // in seconds
   task_id: string;
-  finished_at: string; // iso string with timezone
+  completed_at: string; // iso string with timezone
+  user: string; // username
 }
 
 export interface SessionJournalState {
   items: SessionJournalItem[];
+}
+
+export interface GroupedSessions {
+  [key: string]: {
+    project: string;
+    task: string;
+    sessions: SessionJournalItem[];
+  };
 }

@@ -1,60 +1,53 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { ButtonAdd } from "./buttonAdd";
-import { MenuItem } from "./taskPanelTypes";
-import {
-  useAppSelector,
-  useAppDispatch,
-} from "../../app/hooks";
+import { MenuItem, PanelMenuItem } from "./taskPanelTypes";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { Input, InputRef } from "antd";
-import {
-  renameItem,
-  setRenamingItem,
-} from "./taskPanelSlice";
+import { renameItem, setRenamingItem } from "./taskPanelSlice";
 import { ButtonRename } from "./buttonRename";
 import { ButtonRemove } from "./buttonRemove";
 import { labelValidator } from "./labelValidator";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { modifyItemMutationFn } from "../../api/tasks";
+import { eventManager } from "react-toastify/dist/core";
 
 export const MenuItemRenderer: FC<{
-  item: MenuItem;
+  item: PanelMenuItem;
 }> = (props) => {
   const { item } = props;
-  const renamingItem = useAppSelector(
-    (s) => s.taskPanel.renamingItem
-  );
+  const queryClient = useQueryClient();
+  const renameItemMutation = useMutation({
+    mutationFn: modifyItemMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["projects"]);
+      queryClient.invalidateQueries(["tasks"]);
+    },
+  });
+  const renamingItem = useAppSelector((s) => s.taskPanel.renamingItem);
   const [isHovered, setIsHovered] = useState(false);
   const dispatch = useAppDispatch();
   const inputRef = useRef<InputRef>(null);
   const [inputValue, setInputValue] = useState(item.label);
 
-  const saveNewLabel = useCallback(() => {
-    if (labelValidator(inputValue)) {
+  const saveNewLabel = (inputValue: string, key: string) => {
+    if (inputValue) {
       if (item.label !== inputValue) {
-        dispatch(
-          renameItem({
-            key: item.key,
-            label: inputValue,
-          })
-        );
+        renameItemMutation.mutate({
+          level: item.level,
+          key: key,
+          label: inputValue,
+        });
       }
       dispatch(setRenamingItem(null));
     }
-  }, [dispatch, inputValue, item.key, item.label]);
-
+  };
   const blurHandler = (e: React.FocusEvent) => {
-    if (labelValidator(inputValue)) {
-      saveNewLabel();
-    } else {
-      setInputValue(item.label);
-      dispatch(setRenamingItem(null));
-    }
+    // reset value to original
+    setInputValue(item.label);
+    dispatch(setRenamingItem(null));
   };
 
+  // focus input on rename
   useEffect(() => {
     if (item.key === renamingItem) {
       inputRef.current?.focus();
@@ -68,16 +61,36 @@ export const MenuItemRenderer: FC<{
     }
   }, [item.label]);
 
-  // save on 'enter'
+  // key down handler
   const keyDownHandler = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       if (renamingItem) {
         // do not trigger menu
         e.stopPropagation();
-        saveNewLabel();
+        const validatedVal = labelValidator(inputValue);
+        console.log(validatedVal);
+        if (validatedVal && validatedVal !== item.label) {
+          setInputValue(validatedVal);
+          saveNewLabel(validatedVal, item.key);
+        } else {
+          setInputValue(item.label);
+          dispatch(setRenamingItem(null));
+        }
       }
     }
+    if (e.key === "Escape") {
+      dispatch(setRenamingItem(null));
+      setInputValue(item.label);
+    }
+    e.stopPropagation();
   };
+
+  let projectKey;
+  if (item.level === "project") {
+    projectKey = item.key;
+  } else {
+    projectKey = item.project_id;
+  }
 
   return (
     <div
@@ -91,9 +104,7 @@ export const MenuItemRenderer: FC<{
           <Input
             ref={inputRef}
             value={inputValue}
-            status={
-              labelValidator(inputValue) ? "" : "error"
-            }
+            status={labelValidator(inputValue) ? "" : "error"}
             onChange={(e) => setInputValue(e.target.value)}
             onBlur={blurHandler}
             onClick={(e) => e.stopPropagation()}
@@ -101,35 +112,25 @@ export const MenuItemRenderer: FC<{
         )}
         {item.key !== renamingItem && item.label}
       </div>
-      <div
-        className="menu-item-control"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="menu-item-control" onClick={(e) => e.stopPropagation()}>
         {(isHovered || item.key === renamingItem) && (
-          <ButtonRename
-            itemKey={item.key}
-            level={item.level}
-          />
+          <ButtonRename itemKey={item.key} level={item.level} />
         )}
         {item.level !== "subtask" &&
           (isHovered || item.key === renamingItem) && (
             <ButtonAdd
               level={item.level}
-              itemKey={item.key}
+              parentKey={item.key}
+              projectKey={projectKey}
             />
           )}
         <span
           style={{
             display:
-              isHovered || item.key === renamingItem
-                ? "inline-flex"
-                : "none",
+              isHovered || item.key === renamingItem ? "inline-flex" : "none",
           }}
         >
-          <ButtonRemove
-            itemKey={item.key}
-            level={item.level}
-          />
+          <ButtonRemove itemKey={item.key} level={item.level} />
         </span>
       </div>
     </div>

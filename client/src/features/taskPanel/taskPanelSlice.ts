@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   TaskPanelState,
-  MenuItem,
   Task,
   Subtask,
   Project,
+  MenuItem,
 } from "./taskPanelTypes";
 import { v4 as uuidv4 } from "uuid";
 import { findNode, deleteNodes } from "../utils";
@@ -18,6 +18,7 @@ const initialState: TaskPanelState = {
   openKeys: [],
   renamingItem: null,
   selectedItem: null,
+  selectedLevel: null,
 };
 
 export const counterSlice = createSlice({
@@ -107,6 +108,9 @@ export const counterSlice = createSlice({
     _selectItem: (state, action: PayloadAction<string>) => {
       state.selectedItem = action.payload;
     },
+    _selectLevel: (state, action: PayloadAction<MenuItem["level"]>) => {
+      state.selectedLevel = action.payload;
+    },
     updateItem: (state, action: PayloadAction<UpdateItemPayload>) => {
       const node = findNode(
         state.menuItems,
@@ -132,19 +136,16 @@ export const {
   removeProject,
   removeTask,
   _selectItem,
+  _selectLevel,
   updateItem,
 } = counterSlice.actions;
 
-export const selectCurrentItem = (state: RootState): Task | Subtask | null => {
+export const selectCurrentItem = (state: RootState): string | null => {
   const id = state.taskPanel.selectedItem;
   if (!id) {
     return null;
   }
-  const node = findNode(
-    state.taskPanel.menuItems,
-    (node: MenuItem) => node.key === id
-  );
-  return node;
+  return id;
 };
 
 /**
@@ -153,9 +154,14 @@ export const selectCurrentItem = (state: RootState): Task | Subtask | null => {
  * if it is not, then it saves the current session, and
  * resets the timer before selecting the new task.
  */
-export const selectItem = (id: string): AppThunk => {
+export const selectItem = (id: string, keyPath: string[]): AppThunk => {
   return (dispatch) => {
+    let level: MenuItem["level"] = "project";
+    if (keyPath.length > 1) {
+      level = keyPath.length === 2 ? "task" : "subtask";
+    }
     dispatch(safeResetCountDown());
+    dispatch(_selectLevel(level));
     dispatch(_selectItem(id));
     dispatch(validateCountDown());
   };

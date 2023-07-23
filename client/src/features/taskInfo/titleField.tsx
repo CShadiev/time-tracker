@@ -1,43 +1,44 @@
-import {
-  useAppSelector,
-  useAppDispatch,
-} from "../../app/hooks";
-import {
-  renameItem,
-  selectCurrentItem,
-} from "../taskPanel/taskPanelSlice";
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import { useAppDispatch } from "../../app/hooks";
+import { FC, useState, useEffect, useRef, useCallback } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import { Button, Input } from "antd";
 import { labelValidator } from "../taskPanel/labelValidator";
+import { Subtask, Task } from "../taskPanel/taskPanelTypes";
+import { modifyItemMutationFn } from "../../api/tasks";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const TitleField = () => {
-  const task = useAppSelector(selectCurrentItem);
+type Props = {
+  task: Task | Subtask;
+};
+
+export const TitleField: FC<Props> = (props) => {
+  const { task } = props;
   const inputRef = useRef<any>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [inEdit, setInEdit] = useState(false);
   const [tempValue, setTempValue] = useState(task?.label);
+  const queryClient = useQueryClient();
+  const modifyLabel = useMutation({
+    mutationFn: modifyItemMutationFn,
+    onSuccess: () => {
+      // invalidate projects and tasks
+      queryClient.invalidateQueries(["tasks"]);
+      queryClient.invalidateQueries(["projects"]);
+    },
+  });
 
   const dispatch = useAppDispatch();
 
   const saveNewLabel = useCallback(() => {
-    if (
-      task &&
-      task.label !== tempValue &&
-      (tempValue || tempValue === "")
-    ) {
-      if (labelValidator(tempValue)) {
-        dispatch(
-          renameItem({
-            key: task.key,
-            label: tempValue,
-          })
-        );
+    if (task && task.label !== tempValue && (tempValue || tempValue === "")) {
+      const validatedVal = labelValidator(tempValue);
+      if (validatedVal) {
+        modifyLabel.mutate({
+          level: task.level,
+          key: task.key,
+          label: validatedVal,
+        });
+        setTempValue(validatedVal);
       } else {
         setTempValue(task.label);
       }
@@ -46,14 +47,13 @@ export const TitleField = () => {
 
   const blurHandler = (e: React.FocusEvent) => {
     if (inEdit) {
-      saveNewLabel();
+      // reset to original value
+      setTempValue(task?.label);
       setInEdit(false);
     }
   };
 
-  const changeHandler = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setTempValue(value);
   };
@@ -67,6 +67,12 @@ export const TitleField = () => {
           saveNewLabel();
           setInEdit(false);
         }
+      }
+    } else {
+      if (e.key === "Escape") {
+        // reset to original value
+        setTempValue(task?.label);
+        setInEdit(false);
       }
     }
   };
@@ -89,9 +95,7 @@ export const TitleField = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {!inEdit && (
-        <div className="task-title">{task?.label}</div>
-      )}
+      {!inEdit && <div className="task-title">{task?.label}</div>}
       {inEdit && (
         <Input
           ref={inputRef}

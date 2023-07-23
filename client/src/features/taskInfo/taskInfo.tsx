@@ -3,30 +3,44 @@ import React from "react";
 import { useAppSelector } from "../../app/hooks";
 import { TitleField } from "./titleField";
 import { selectCurrentItem } from "../taskPanel/taskPanelSlice";
-import { format } from "date-fns";
-import { parseISO } from "date-fns/esm";
 import { DescriptionField } from "./descriptionField";
 import { ExpectedDurationInfo } from "./expectedDurationInfo";
+import { useQuery } from "@tanstack/react-query";
+import { apiBase } from "../../app/config";
+import axios from "axios";
+import { Subtask, Task } from "../taskPanel/taskPanelTypes";
+import { format, parseISO } from "date-fns";
 
 export const TaskInfo: React.FC = () => {
-  const selectedTask = useAppSelector(selectCurrentItem);
+  const selectedTaskKey = useAppSelector(selectCurrentItem);
+  const selectedLevel = useAppSelector((s) => s.taskPanel.selectedLevel);
+  const { data: selectedTask, isSuccess } = useQuery(
+    ["tasks", selectedTaskKey],
+    async () => {
+      const response = await axios.get(apiBase + `/tasks/${selectedTaskKey}/`);
+      return response.data as Task | Subtask;
+    },
+    {
+      enabled: !!selectedTaskKey && selectedLevel !== "project",
+    }
+  );
+
   const createdAt =
-    selectedTask && parseISO(selectedTask.created_at);
+    selectedTask?.created_at && parseISO(selectedTask.created_at);
 
   return (
     <Card title="Current Task">
       {!selectedTask && <p>No task selected</p>}
-      {selectedTask && (
+      {isSuccess && selectedTask && (
         <div className={"task-info"}>
-          <TitleField />
-          <DescriptionField />
+          <TitleField task={selectedTask} />
+          <DescriptionField task={selectedTask} />
           <Divider />
           <div className="task-info-panel">
             <div className={"info-group"}>
               <div className={"label"}>created</div>
               <div className={"value"}>
-                {createdAt &&
-                  format(createdAt, "MMM d, HH:mm")}
+                {createdAt && format(createdAt, "MMM d, HH:mm")}
               </div>
             </div>
             <div className={"info-group"}>
@@ -35,7 +49,7 @@ export const TaskInfo: React.FC = () => {
                 {selectedTask.completed_at || "N/A"}
               </div>
             </div>
-            <ExpectedDurationInfo />
+            <ExpectedDurationInfo task={selectedTask} />
           </div>
         </div>
       )}

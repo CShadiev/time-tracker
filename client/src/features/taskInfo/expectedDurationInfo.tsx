@@ -1,25 +1,29 @@
 import { Input, InputNumber } from "antd";
 import { FC, useRef, useState, useEffect } from "react";
-import {
-  useAppSelector,
-  useAppDispatch,
-} from "../../app/hooks";
-import {
-  selectCurrentItem,
-  updateItem,
-} from "../taskPanel/taskPanelSlice";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
+import { selectCurrentItem, updateItem } from "../taskPanel/taskPanelSlice";
 import { _setExpectedDurationIsInEdit } from "./taskInfoSlice";
+import { Subtask, Task } from "../taskPanel/taskPanelTypes";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { modifyItemMutationFn } from "../../api/tasks";
 
-export const ExpectedDurationInfo: FC = () => {
-  const task = useAppSelector(selectCurrentItem);
+type Props = {
+  task: Task | Subtask;
+};
+
+export const ExpectedDurationInfo: FC<Props> = (props) => {
+  const { task } = props;
   const inputRef = useRef<any>(null);
-  const inEdit = useAppSelector(
-    (s) => s.taskInfo.expectedDurationIsInEdit
-  );
-  const [tempValue, setTempValue] = useState(
-    task?.expected_time
-  );
+  const inEdit = useAppSelector((s) => s.taskInfo.expectedDurationIsInEdit);
+  const [tempValue, setTempValue] = useState(task?.expected_time);
+  const queryClient = useQueryClient();
 
+  const setTimeMutation = useMutation({
+    mutationFn: modifyItemMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["tasks", task?.key]);
+    },
+  });
   const dispatch = useAppDispatch();
 
   const setInEdit = (val: boolean) =>
@@ -29,17 +33,20 @@ export const ExpectedDurationInfo: FC = () => {
       return;
     }
 
-    dispatch(
-      updateItem({
-        key: task?.key,
-        expected_time: (value && value * 60) || null,
-      })
-    );
+    if (value === null || value === undefined) {
+      return;
+    }
+    setTimeMutation.mutate({
+      key: task.key,
+      level: task.level,
+      expected_time: value * 60,
+    });
   };
 
   const blurHandler = (e: React.FocusEvent) => {
     if (inEdit) {
-      saveValue(tempValue);
+      // reset value
+      setTempValue(task?.expected_time && Math.floor(task.expected_time / 60));
       setInEdit(false);
     }
   };
@@ -54,18 +61,13 @@ export const ExpectedDurationInfo: FC = () => {
     }
   };
 
-  const changeHandler = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTempValue(parseInt(e.target.value));
   };
 
   // sync global state --> tempValue
   useEffect(() => {
-    setTempValue(
-      task?.expected_time &&
-        Math.floor(task.expected_time / 60)
-    );
+    setTempValue(task?.expected_time && Math.floor(task.expected_time / 60));
   }, [task?.expected_time]);
 
   // auto focus on edit
@@ -74,7 +76,7 @@ export const ExpectedDurationInfo: FC = () => {
       inputRef.current?.focus();
     }
   }, [inEdit]);
-
+  
   return (
     <div
       className="info-group expected-time"
@@ -82,9 +84,11 @@ export const ExpectedDurationInfo: FC = () => {
     >
       <div className="label">expected time (minutes)</div>
       {!inEdit && (
-        <div className="value">
-          {(task?.expected_time &&
-            Math.floor(task.expected_time / 60)) ||
+        <div
+          className="value"
+          style={{ textDecoration: "underline", cursor: "pointer" }}
+        >
+          {(task?.expected_time && Math.floor(task.expected_time / 60)) ||
             "N/A"}
         </div>
       )}

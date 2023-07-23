@@ -1,20 +1,16 @@
 import { CountDownState } from "./countDownTimerTypes";
 import { AppThunk } from "../../app/store";
-import { addSessionEntry } from "../sessionJournal/sessionJournalSlice";
-import {
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: CountDownState = {
   /* initialize with default timer
     later may be used with user settings */
 
   isDisabled: true,
-  initialCount: 5, // initial count down value
+  initialCount: 40 * 60, // initial count down value
   isOnPause: true, // control to pause the count down
   expectedTime: null,
-  count: 5,
+  count: 40 * 60,
   showSwitchNotification: true,
   switchNotificationIsShown: false,
   autoContinue: false,
@@ -63,10 +59,7 @@ export const countDownSlice = createSlice({
       state.showSwitchNotification = false;
       state.switchNotificationIsShown = false;
     },
-    _setInitialCount: (
-      state,
-      action: PayloadAction<number>
-    ) => {
+    _setInitialCount: (state, action: PayloadAction<number>) => {
       if (Number(action.payload)) {
         state.initialCount = action.payload;
         state.count = action.payload;
@@ -98,9 +91,7 @@ export const {
 } = countDownSlice.actions;
 export const countDownReducer = countDownSlice.reducer;
 
-export const setInitialCount = (
-  count: number
-): AppThunk => {
+export const setInitialCount = (count: number): AppThunk => {
   return (dispatch) => {
     dispatch(safeResetCountDown());
     dispatch(_setInitialCount(count));
@@ -136,10 +127,7 @@ export const safeResetCountDown = (): AppThunk => {
   return (dispatch, getState) => {
     const state = getState();
 
-    if (
-      state.countDown.initialCount > state.countDown.count
-    ) {
-      dispatch(addSessionEntry());
+    if (state.countDown.initialCount > state.countDown.count) {
       dispatch(resetCountDown());
       dispatch(showSwitchNotification());
     }
@@ -150,7 +138,6 @@ export const finishCountDown = (): AppThunk => {
   return (dispatch, getState) => {
     const state = getState();
 
-    dispatch(addSessionEntry());
     dispatch(resetCountDown());
     if (state.countDown.autoContinue) {
       dispatch(resumeTimer());

@@ -4,29 +4,44 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { PlusOutlined } from "@ant-design/icons";
 import { mapTree } from "../utils";
 import { MenuItemRenderer } from "./menuItemRenderer";
-import { MenuItem } from "./taskPanelTypes";
-import { addProject, selectItem, setOpenKeys } from "./taskPanelSlice";
-import { useQuery } from "@tanstack/react-query";
+import { PanelMenuItem } from "./taskPanelTypes";
+import { selectItem, setOpenKeys } from "./taskPanelSlice";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProjectsQuery } from "../../api/tasks";
+import axios from "axios";
+import { apiBase } from "../../app/config";
 
 export const TaskPanel: FC = () => {
-  const items = useAppSelector((s) => s.taskPanel.menuItems);
-  const { data: projects } = useQuery(["projects"], getProjectsQuery);
-
-  console.log(projects);
+  const queryClient = useQueryClient();
+  const { data: items } = useQuery(["projects"], getProjectsQuery);
   const openKeys = useAppSelector((s) => s.taskPanel.openKeys);
-  const mapFunc = (item: MenuItem) =>
-    mapTree(item, (j: MenuItem) => ({
+  const addProjectMutation = useMutation<unknown>(
+    ["addProject"],
+    async () => {
+      const resp = await axios.post(apiBase + "/projects/", {
+        label: "New project",
+        description: "",
+      });
+      return resp;
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["projects"]);
+      },
+    }
+  );
+  const mapFunc = (item: PanelMenuItem) =>
+    mapTree(item, (j: PanelMenuItem) => ({
       key: j.key,
       level: j.level,
-      children: j.children,
+      children: j.level !== "subtask" ? j.children : undefined,
       label: <MenuItemRenderer item={j} />,
     }));
   const dispatch = useAppDispatch();
-  const itemsWithComponents = items.map(mapFunc);
+  const itemsWithComponents = items?.map(mapFunc) || [];
 
-  const clickHandler: React.MouseEventHandler = () => {
-    dispatch(addProject());
+  const addProjectHandler: React.MouseEventHandler = () => {
+    addProjectMutation.mutate();
   };
 
   return (
@@ -36,7 +51,7 @@ export const TaskPanel: FC = () => {
           <Button
             shape="default"
             style={{ width: "100%" }}
-            onClick={clickHandler}
+            onClick={addProjectHandler}
           >
             <PlusOutlined /> new project
           </Button>
@@ -44,7 +59,10 @@ export const TaskPanel: FC = () => {
         <Menu
           openKeys={openKeys}
           onOpenChange={(keys) => dispatch(setOpenKeys(keys))}
-          onSelect={(item) => dispatch(selectItem(item.key))}
+          onSelect={(info) =>
+            info.keyPath.length > 1 &&
+            dispatch(selectItem(info.key, info.keyPath))
+          }
           items={itemsWithComponents}
           style={{ width: "100%" }}
           mode={"inline"}

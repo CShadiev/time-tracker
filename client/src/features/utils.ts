@@ -2,6 +2,7 @@ const hasChildren = (node: any, childrenLabel: string) => {
   return (
     typeof node === "object" &&
     typeof node[childrenLabel] !== "undefined" &&
+    node[childrenLabel] !== null &&
     node[childrenLabel].length > 0
   );
 };
@@ -58,11 +59,7 @@ export const findNode = (
 ): any | null => {
   if (Array.isArray(node)) {
     for (let i = 0; i < node.length; i++) {
-      const result = findNode(
-        node[i],
-        predicate,
-        childrenLabel
-      );
+      const result = findNode(node[i], predicate, childrenLabel);
       if (result) {
         return result;
       }
@@ -79,11 +76,7 @@ export const findNode = (
   }
 
   for (let i = 0; i < node[childrenLabel].length; i++) {
-    const result = findNode(
-      node[childrenLabel][i],
-      predicate,
-      childrenLabel
-    );
+    const result = findNode(node[childrenLabel][i], predicate, childrenLabel);
     if (result) {
       return result;
     }
@@ -99,11 +92,7 @@ export const deleteNodes = (
 ): null => {
   /* delete all nodes that match the predicate */
 
-  const inner = (
-    node: any,
-    predicate: Function,
-    childrenLabel: string
-  ) => {
+  const inner = (node: any, predicate: Function, childrenLabel: string) => {
     if (!hasChildren(node, childrenLabel)) {
       // nothing to do with this node
       return null;
@@ -112,11 +101,7 @@ export const deleteNodes = (
       if (predicate(node[childrenLabel][i])) {
         node[childrenLabel].splice(i, 1);
       } else {
-        deleteNodes(
-          node[childrenLabel][i],
-          predicate,
-          childrenLabel
-        );
+        deleteNodes(node[childrenLabel][i], predicate, childrenLabel);
       }
     }
   };
@@ -141,21 +126,15 @@ export const deleteNodes = (
  * @param durationInSeconds {number} duration in seconds, can be negative
  * @returns {string} duration in the format hh:mm:ss or mm:ss
  */
-export const formatDuration = (
-  durationInSeconds: number
-) => {
+export const formatDuration = (durationInSeconds: number) => {
   const isPositive = durationInSeconds >= 0;
   durationInSeconds = Math.abs(durationInSeconds);
 
   const hours = Math.floor(durationInSeconds / 3600);
-  const minutes = Math.floor(
-    (durationInSeconds - hours * 3600) / 60
-  );
-  const seconds =
-    durationInSeconds - hours * 3600 - minutes * 60;
+  const minutes = Math.floor((durationInSeconds - hours * 3600) / 60);
+  const seconds = durationInSeconds - hours * 3600 - minutes * 60;
 
-  const hoursStr =
-    (hours > 0 && hours.toString().padStart(2, "0")) || "";
+  const hoursStr = (hours > 0 && hours.toString().padStart(2, "0")) || "";
   const minutesStr = minutes.toString().padStart(2, "0");
   const secondsStr = seconds.toString().padStart(2, "0");
 

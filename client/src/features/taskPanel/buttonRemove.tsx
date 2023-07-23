@@ -2,12 +2,11 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import { FC } from "react";
 import { useAppDispatch } from "../../app/hooks";
-import {
-  removeProject,
-  removeTask,
-} from "./taskPanelSlice";
+import { removeProject, removeTask } from "./taskPanelSlice";
 import { MenuItem } from "./taskPanelTypes";
 import { Popconfirm } from "antd";
+import { deleteItemMutationFn } from "../../api/tasks";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // add task or subtask
 interface ButtonRemoveProps {
@@ -15,20 +14,24 @@ interface ButtonRemoveProps {
   itemKey: MenuItem["key"];
 }
 
-export const ButtonRemove: FC<ButtonRemoveProps> = (
-  props
-) => {
+export const ButtonRemove: FC<ButtonRemoveProps> = (props) => {
   const { level, itemKey } = props;
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+  const deleteItemMutation = useMutation({
+    mutationFn: deleteItemMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["projects"]);
+    },
+  });
   const label = `remove ${level}`;
 
   const clickHandler = (e: any) => {
     e.stopPropagation();
-    if (["task", "subtask"].includes(level)) {
-      dispatch(removeTask(itemKey));
-    } else {
-      dispatch(removeProject(itemKey));
-    }
+    deleteItemMutation.mutate({
+      level: level,
+      key: itemKey,
+    });
   };
 
   return (
