@@ -31,7 +31,7 @@ def parse_task(data: Iterable[DBTask]) -> list["Task"]:
 
 def parse_task(data: DBTask | Iterable[DBTask]) -> "Task | list[Task]":
     """Parses a DBTask object or a list of DBTask objects
-    into a Task object or a list of Task objects.
+    into a Task object or a list of Task objects, respectively.
     """
     if isinstance(data, DBTask):
         data.created_at = data.created_at.replace(tzinfo=TIMEZONE)

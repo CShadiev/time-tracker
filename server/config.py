@@ -16,7 +16,7 @@ class Config(BaseModel):
     SECRET_KEY: str
     JWT_ENCR_ALGORITHM: str
     TOKEN_TIMEOUT_TD: timedelta
-    TIMEZONE: ZoneInfo
+    TIMEZONE: ZoneInfo  # internal timezone (DB and api)
     USE_SECURE_COOKIES: bool
 
     DB_HOST: str
@@ -28,6 +28,7 @@ class Config(BaseModel):
 
     UVICORN_HOME: str
     UVICORN_PORT: int
+    UVICORN_RELOAD: bool = False
 
     class Config:
         arbitrary_types_allowed = True
@@ -37,20 +38,10 @@ class Config(BaseModel):
         assert v is not None
         return timedelta(days=int(v))
 
-    @validator("USE_SECURE_COOKIES", pre=True)
-    def validate_secure_cookies(cls, v: str | None):
-        assert v is not None
-        return bool(int(v))
-
     @validator("TIMEZONE", pre=True)
     def validate_timezone(cls, v: str | None):
         assert v is not None
         return ZoneInfo(v)
-
-    @validator("UVICORN_PORT", pre=True)
-    def validate_uvicorn_port(cls, v: str | None):
-        assert v is not None
-        return int(v)
 
 
 config = Config.parse_obj(env)
