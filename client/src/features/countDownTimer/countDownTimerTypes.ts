@@ -1,6 +1,4 @@
 export interface CountDownState {
-  isOnPause: boolean;
-
   isDisabled: boolean;
   // expected time to complete the task in seconds
   expectedTime: number | null;
@@ -19,4 +17,35 @@ export interface CountDownState {
 
   // start next session automatically
   autoContinue: boolean;
+}
+
+export type WorkerIncomingMessage =
+  | WorkerStartTimerMessage
+  | WorkerStopTimerMessage;
+
+export type WorkerOutgoingMessage =
+  | WorkerCountDownMessage
+  | WorkerPlayNotificationMessage
+  | WorkerFinishTimerMessage;
+
+export interface WorkerStartTimerMessage {
+  action: "START_TIMER";
+  initialCount: number;
+}
+
+export interface WorkerStopTimerMessage {
+  action: "STOP_TIMER";
+}
+
+export interface WorkerCountDownMessage {
+  action: "DECREASE_COUNT";
+  currentCount: number;
+}
+
+export interface WorkerPlayNotificationMessage {
+  action: "PLAY_NOTIFICATION";
+}
+
+export interface WorkerFinishTimerMessage {
+  action: "FINISH_TIMER";
 }

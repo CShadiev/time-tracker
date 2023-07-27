@@ -1,6 +1,9 @@
 import { CountDownState } from "./countDownTimerTypes";
 import { AppThunk } from "../../app/store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import getWorker from "./workerInstance";
+
+const worker = getWorker();
 
 const initialState: CountDownState = {
   /* initialize with default timer
@@ -8,7 +11,6 @@ const initialState: CountDownState = {
 
   isDisabled: true,
   initialCount: 40 * 60, // initial count down value
-  isOnPause: true, // control to pause the count down
   expectedTime: null,
   count: 40 * 60,
   showSwitchNotification: true,
@@ -22,24 +24,13 @@ export const countDownSlice = createSlice({
   reducers: {
     resetCountDown: (state) => {
       state.count = state.initialCount;
-      state.isOnPause = true;
-    },
-    pauseTimer: (state) => {
-      state.isOnPause = true;
-    },
-    resumeTimer: (state) => {
-      state.isOnPause = false;
+      console.log("stopping timer");
+      worker.postMessage({
+        action: "STOP_TIMER",
+      });
     },
     setCount: (state, action: PayloadAction<number>) => {
       state.count = action.payload;
-    },
-    decreaseCount: (state) => {
-      if (state.count > 0) {
-        state.count = state.count - 1;
-      }
-      if (state.count === 0) {
-        state.isOnPause = true;
-      }
     },
     enableCountDown: (state) => {
       state.isDisabled = false;
@@ -81,10 +72,7 @@ export const {
   showSwitchNotification,
   hideSwitchNotification,
   hideSwitchNotificationAndDontShowAgain,
-  decreaseCount,
   resetCountDown,
-  pauseTimer,
-  resumeTimer,
   setCount,
   enableCountDown,
   disableCountDown,
@@ -140,7 +128,10 @@ export const finishCountDown = (): AppThunk => {
 
     dispatch(resetCountDown());
     if (state.countDown.autoContinue) {
-      dispatch(resumeTimer());
+      worker.postMessage({
+        action: "START_TIMER",
+        initialCount: state.countDown.initialCount,
+      });
     }
   };
 };
