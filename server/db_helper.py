@@ -11,18 +11,23 @@ class DBConfig(BaseModel):
     USER: str
     PASSWORD: str
     DATABASE: str
-    TYPE: Literal['mysql'] = 'mysql'
+    TYPE: Literal["mysql"] = "mysql"
 
 
 class DBHelper:
     def __init__(self, config: DBConfig) -> None:
-        if config.TYPE == 'mysql':
+        if config.TYPE == "mysql":
             c_string = URL.create(
-                'mysql', config.USER, config.PASSWORD,
-                config.HOST, config.PORT, config.DATABASE)
-            self.engine = create_engine(c_string)
+                "mysql",
+                config.USER,
+                config.PASSWORD,
+                config.HOST,
+                config.PORT,
+                config.DATABASE,
+            )
+            self.engine = create_engine(c_string, pool_pre_ping=True, pool_recycle=3000)
         else:
-            raise ValueError('Invalid database type')
+            raise ValueError("Invalid database type")
 
     def create_session(self):
         return Session(self.engine)
