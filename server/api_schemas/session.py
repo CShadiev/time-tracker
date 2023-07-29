@@ -85,6 +85,7 @@ def get_many(user: str, ts_start: dt.datetime, ts_end: dt.datetime) -> list["Ses
                 DBSession.completed_at >= ts_start,
                 DBSession.completed_at <= ts_end,
             )
+            .order_by(DBSession.completed_at)
         )
 
         result = session.scalars(query).all()
