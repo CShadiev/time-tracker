@@ -48,13 +48,15 @@ export const useCountDown = () => {
         }
         if (action === "FINISH_TIMER") {
           dispatch(finishCountDown());
+          console.log(`taskId: ${taskId}`);
           if (taskId) {
+            console.log("sending request to store new session");
             addSessionMutation.mutate({ initialCount, taskId });
           }
         }
       };
     }
-  }, [webWorker, audio, dispatch, initialCount]);
+  }, [webWorker, audio, dispatch, initialCount, taskId]);
 
   return {
     count: count,
