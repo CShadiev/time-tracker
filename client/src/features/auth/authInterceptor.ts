@@ -1,15 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useAppDispatch } from "../../app/hooks";
 import { useEffect, useRef } from "react";
 import axios from "axios";
-import { accessTokenSelector, unsetAccessToken } from "./authSlice";
+import { unsetAccessToken } from "./authSlice";
 import { toast } from "react-toastify";
-import { REDIRECT_DELAY_SECONDS } from "../../app/config";
+import { REDIRECT_DELAY_SECONDS, unprotectedRoutes } from "../../app/config";
 
 export const AuthInterceptor: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const accessToken = useAppSelector(accessTokenSelector);
+  //   const accessToken = useAppSelector(accessTokenSelector);
   const responseInterceptor = useRef<any>(null);
   const requestInterceptor = useRef<any>(null);
   const redirectRef = useRef<any>(null);
@@ -17,24 +17,24 @@ export const AuthInterceptor: React.FC = () => {
   // add request interceptor
   useEffect(() => {
     // add interceptor
-    if (accessToken) {
-      if (requestInterceptor.current) {
-        // clear existing
-        axios.interceptors.request.eject(requestInterceptor.current);
-        requestInterceptor.current = null;
-      }
-
-      if (!requestInterceptor.current) {
-        requestInterceptor.current = axios.interceptors.request.use(
-          (config) => {
-            config.headers["Authorization"] = `Bearer ${accessToken}`;
+    if (!requestInterceptor.current) {
+      requestInterceptor.current = axios.interceptors.request.use(
+        (config) => {
+          if (config.url && unprotectedRoutes.includes(config.url)) {
             return config;
-          },
-          (error) => {
-            return Promise.reject(error);
           }
-        );
-      }
+
+          const accessToken = localStorage.getItem("access_token");
+          if (!accessToken) {
+            return Promise.reject({ response: { status: 401 } });
+          }
+          config.headers["Authorization"] = `Bearer ${accessToken}`;
+          return config;
+        },
+        (error) => {
+          return Promise.reject(error);
+        }
+      );
     }
 
     // remove interceptor on unmount
@@ -44,7 +44,7 @@ export const AuthInterceptor: React.FC = () => {
         requestInterceptor.current = null;
       }
     };
-  }, [accessToken]);
+  }, []);
 
   // add response interceptor
   useEffect(() => {
