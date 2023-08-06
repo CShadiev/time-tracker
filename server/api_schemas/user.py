@@ -9,22 +9,25 @@ import datetime as dt
 import exceptions as exc
 from validators import username_validator
 from validators import password_validator
+from logging import getLogger
 
 
-UsernameField = Field(description=username_validator.__doc__ or '')
-PasswordField = Field(description=password_validator.__doc__ or '')
+UsernameField = Field(description=username_validator.__doc__ or "")
+PasswordField = Field(description=password_validator.__doc__ or "")
+logger = getLogger("user")
 
 
 class SignRequest(BaseModel):
     """Request body for signing up a new user and signing in."""
+
     username: str = UsernameField
     password: str = PasswordField
 
-    @validator('username')
+    @validator("username")
     def validate_username(cls, value):
         return username_validator(value)
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, value):
         return password_validator(value)
 
@@ -33,7 +36,7 @@ class User(BaseModel):
     username: str = UsernameField
     password_hash: str = PasswordField
 
-    @validator('username')
+    @validator("username")
     def validate_username(cls, value):
         return username_validator(value)
 
@@ -50,7 +53,7 @@ class User(BaseModel):
         return user is not None
 
     @classmethod
-    def create(cls, username: str, password: str) -> 'User':
+    def create(cls, username: str, password: str) -> "User":
         """Creates a new user and returns User object."""
         # check if user already exists
         password_validator(password)
@@ -58,38 +61,41 @@ class User(BaseModel):
         if cls.exists(username):
             raise exc.UserExistsError(username)
 
-        user = cls(
-            username=username,
-            password_hash=bcrypt_sha256.hash(password))
+        user = cls(username=username,
+                   password_hash=bcrypt_sha256.hash(password))
         return user
 
     @classmethod
-    def get_by_username(cls, username: str) -> 'User':
+    def get_by_username(cls, username: str) -> "User":
         """Get user by username."""
         username = username.lower()
+        logger.info(f"Getting user {username} from database.")
         with database.create_session() as session:
             qry = select(DBUser).where(DBUser.username == username)
             user = session.scalar(qry)
 
         if user is None:
+            logger.error(f"User {username} not found.")
             raise exc.UserNotFoundError
 
-        return cls(
-            username=user.username,
-            password_hash=user.password_hash)
+        return cls(username=user.username, password_hash=user.password_hash)
 
     @classmethod
-    def get_by_token(cls, token: str) -> 'User':
+    def get_by_token(cls, token: str) -> "User":
         """Returns User object from data decoded from JWT token.
 
         If valid_till < now, it will raise HTTPException.
         """
 
+        logger.info("Getting user from token.")
         data = jwt.decode(token, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
         now = dt.datetime.now(tz=config.TIMEZONE)
-        valid_till = dt.datetime.fromisoformat(data['valid_till_ISO'])
+        valid_till = dt.datetime.fromisoformat(data["valid_till_ISO"])
 
-        if (now > valid_till):
+        if now > valid_till:
+            logger.error("Token expired.")
+            logger.debug(f"Token valid till: {valid_till.isoformat()}"
+                         f" now: {now.isoformat()}")
             raise exc.TokenExpiredError
 
         return cls(**data)
@@ -107,12 +113,10 @@ class User(BaseModel):
     def verify_password(self, password: str) -> bool:
         return bcrypt_sha256.verify(password, self.password_hash)
 
-    def generate_access_token(
-            self, expire_in: dt.timedelta = config.TOKEN_TIMEOUT_TD) -> str:
-
+    def generate_access_token(self, expire_in: dt.timedelta = config.TOKEN_TIMEOUT_TD) -> str:
         expire_ts = dt.datetime.now(tz=config.TIMEZONE) + expire_in
         data = self.dict()
-        data['valid_till_ISO'] = expire_ts.isoformat()
+        data["valid_till_ISO"] = expire_ts.isoformat()
         return jwt.encode(data, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
 
     def remove(self):
