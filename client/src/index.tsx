@@ -8,12 +8,11 @@ import reportWebVitals from "./reportWebVitals";
 import { baseName } from "./app/config";
 import { BrowserRouter } from "react-router-dom";
 import { CookiesProvider } from "react-cookie";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./queryClient";
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);
-
-const queryClient = new QueryClient();
 
 root.render(
   <React.StrictMode>

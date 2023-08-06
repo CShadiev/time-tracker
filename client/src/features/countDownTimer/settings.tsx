@@ -1,8 +1,5 @@
 import { Card, Input, Switch } from "antd";
-import {
-  useAppSelector,
-  useAppDispatch,
-} from "../../app/hooks";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import {
   disableAutoContinue,
   enableAutoContinue,
@@ -10,12 +7,8 @@ import {
 } from "./countDownSlice";
 
 export const Settings = () => {
-  const duration = useAppSelector(
-    (s) => s.countDown.initialCount
-  );
-  const autoContinue = useAppSelector(
-    (s) => s.countDown.autoContinue
-  );
+  const duration = useAppSelector((s) => s.countDown.initialCount);
+  const autoContinue = useAppSelector((s) => s.countDown.autoContinue);
   const dispatch = useAppDispatch();
 
   return (
@@ -25,11 +18,11 @@ export const Settings = () => {
         <Input
           type="number"
           value={Math.floor(duration / 60)}
-          onChange={(e) =>
-            dispatch(
-              setInitialCount(parseInt(e.target.value) * 60)
-            )
-          }
+          onChange={(e) => {
+            if (e.target.value && parseInt(e.target.value) > 0) {
+              dispatch(setInitialCount(parseInt(e.target.value) * 60));
+            }
+          }}
         />
       </div>
       <div className="settings-item">

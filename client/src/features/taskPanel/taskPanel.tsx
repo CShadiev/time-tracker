@@ -1,5 +1,5 @@
-import { FC } from "react";
-import { Button, Card, Menu } from "antd";
+import { FC, useState } from "react";
+import { Button, Card, Menu, MenuProps } from "antd";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { PlusOutlined } from "@ant-design/icons";
 import { mapTree } from "../utils";
@@ -10,11 +10,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProjectsQuery } from "../../api/tasks";
 import axios from "axios";
 import { apiBase } from "../../app/config";
+import { SwitchNotification } from "../countDownTimer/switchNotification";
 
 export const TaskPanel: FC = () => {
   const queryClient = useQueryClient();
   const { data: items } = useQuery(["projects"], getProjectsQuery);
   const openKeys = useAppSelector((s) => s.taskPanel.openKeys);
+  const selectedKey = useAppSelector((s) => s.taskPanel.selectedItem);
   const addProjectMutation = useMutation<unknown>(
     ["addProject"],
     async () => {
@@ -39,6 +41,24 @@ export const TaskPanel: FC = () => {
     }));
   const dispatch = useAppDispatch();
   const itemsWithComponents = items?.map(mapFunc) || [];
+  const [switchObject, setSwitchObject] = useState<{
+    key: string;
+    path: string[];
+  } | null>(null);
+  const count = useAppSelector((s) => s.countDown.count);
+  const initialCount = useAppSelector((s) => s.countDown.initialCount);
+  const selectEventHandler: MenuProps["onSelect"] = (info) => {
+    if (info.keyPath.length > 1) {
+      if (count !== initialCount) {
+        setSwitchObject({
+          key: info.key,
+          path: info.keyPath,
+        });
+      } else {
+        dispatch(selectItem(info.key, info.keyPath));
+      }
+    }
+  };
 
   const addProjectHandler: React.MouseEventHandler = () => {
     addProjectMutation.mutate();
@@ -46,6 +66,18 @@ export const TaskPanel: FC = () => {
 
   return (
     <div className="task-panel">
+      <SwitchNotification
+        open={!!switchObject}
+        onCancel={() => {
+          setSwitchObject(null);
+        }}
+        onSuccess={() => {
+          if (switchObject) {
+            dispatch(selectItem(switchObject.key, switchObject.path));
+          }
+          setSwitchObject(null);
+        }}
+      />
       <Card title="Tasks">
         <div className="button-panel">
           <Button
@@ -59,10 +91,8 @@ export const TaskPanel: FC = () => {
         <Menu
           openKeys={openKeys}
           onOpenChange={(keys) => dispatch(setOpenKeys(keys))}
-          onSelect={(info) =>
-            info.keyPath.length > 1 &&
-            dispatch(selectItem(info.key, info.keyPath))
-          }
+          onSelect={(info) => selectEventHandler(info)}
+          selectedKeys={selectedKey ? [selectedKey] : []}
           items={itemsWithComponents}
           style={{ width: "100%" }}
           mode={"inline"}

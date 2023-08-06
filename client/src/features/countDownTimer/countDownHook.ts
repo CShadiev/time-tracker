@@ -3,10 +3,9 @@ import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import useSound from "use-sound";
 import { finishCountDown, setCount } from "./countDownSlice";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { apiBase } from "../../app/config";
 import { WorkerOutgoingMessage } from "./countDownTimerTypes";
 import getWorker from "./workerInstance";
+import { saveSessionMutationFn } from "../../api/sessions";
 
 export const useCountDown = () => {
   const initialCount = useAppSelector((s) => s.countDown.initialCount);
@@ -16,16 +15,9 @@ export const useCountDown = () => {
   });
   const queryClient = useQueryClient();
   const addSessionMutation = useMutation({
-    mutationFn: async (params: { initialCount: number; taskId: string }) => {
-      const { initialCount, taskId } = params;
-      axios.post(apiBase + "/session/add", {
-        task_id: taskId,
-        completed_at: new Date().toISOString(),
-        duration: initialCount,
-      });
-    },
+    mutationFn: saveSessionMutationFn,
     onSuccess: () => {
-      queryClient.invalidateQueries(["sessions"]);
+      queryClient.refetchQueries(["sessions"]);
     },
   });
   const webWorker = useMemo(() => getWorker(), []);
@@ -49,12 +41,12 @@ export const useCountDown = () => {
         if (action === "FINISH_TIMER") {
           dispatch(finishCountDown());
           if (taskId) {
-            addSessionMutation.mutate({ initialCount, taskId });
+            addSessionMutation.mutate({ initialCount: initialCount, taskId });
           }
         }
       };
     }
-  }, [webWorker, audio, dispatch, initialCount]);
+  }, [webWorker, audio, dispatch, initialCount, taskId, addSessionMutation]);
 
   return {
     count: count,

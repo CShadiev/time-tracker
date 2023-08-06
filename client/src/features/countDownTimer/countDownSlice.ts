@@ -2,6 +2,8 @@ import { CountDownState } from "./countDownTimerTypes";
 import { AppThunk } from "../../app/store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import getWorker from "./workerInstance";
+import { saveSessionMutationFn } from "../../api/sessions";
+import { queryClient } from "../../queryClient";
 
 const worker = getWorker();
 
@@ -116,8 +118,14 @@ export const safeResetCountDown = (): AppThunk => {
     const state = getState();
 
     if (state.countDown.initialCount > state.countDown.count) {
+      if (state.taskPanel.selectedItem) {
+        saveSessionMutationFn({
+          initialCount: state.countDown.initialCount - state.countDown.count,
+          taskId: state.taskPanel.selectedItem,
+        });
+        queryClient.refetchQueries(["sessions"]);
+      }
       dispatch(resetCountDown());
-      dispatch(showSwitchNotification());
     }
   };
 };

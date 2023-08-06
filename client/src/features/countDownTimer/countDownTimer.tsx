@@ -2,8 +2,10 @@ import { useCountDown } from "./countDownHook";
 import { formatDuration } from "../utils";
 import { Card } from "antd";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { resetCountDown } from "./countDownSlice";
+import { resetCountDown, safeResetCountDown } from "./countDownSlice";
 import { useSpring, animated } from "@react-spring/web";
+import { SwitchNotification } from "./switchNotification";
+import { useState } from "react";
 
 export const CountDownTimer = () => {
   const { count: countDown, startCountDown, stopCountDown } = useCountDown();
@@ -15,17 +17,27 @@ export const CountDownTimer = () => {
   const [springs, springAPI] = useSpring(() => ({
     from: { x: 0 },
   }));
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const dispatch = useAppDispatch();
 
   return (
     <div className="countdown-timer">
+      <SwitchNotification
+        open={showResetDialog}
+        onSuccess={() => {
+          setShowResetDialog(false);
+          dispatch(safeResetCountDown());
+        }}
+        onCancel={() => setShowResetDialog(false)}
+      />
+
       <Card
         title="Countdown Timer"
         actions={[
           <div
             className="danger"
-            onClick={() => !isDisabled && dispatch(resetCountDown())}
+            onClick={() => !isDisabled && setShowResetDialog(true)}
           >
             reset
           </div>,
