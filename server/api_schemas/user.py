@@ -9,12 +9,10 @@ import datetime as dt
 import exceptions as exc
 from validators import username_validator
 from validators import password_validator
-from logging import getLogger
 
 
 UsernameField = Field(description=username_validator.__doc__ or "")
 PasswordField = Field(description=password_validator.__doc__ or "")
-logger = getLogger("user")
 
 
 class SignRequest(BaseModel):
@@ -69,13 +67,11 @@ class User(BaseModel):
     def get_by_username(cls, username: str) -> "User":
         """Get user by username."""
         username = username.lower()
-        logger.info(f"Getting user {username} from database.")
         with database.create_session() as session:
             qry = select(DBUser).where(DBUser.username == username)
             user = session.scalar(qry)
 
         if user is None:
-            logger.error(f"User {username} not found.")
             raise exc.UserNotFoundError
 
         return cls(username=user.username, password_hash=user.password_hash)
@@ -87,15 +83,11 @@ class User(BaseModel):
         If valid_till < now, it will raise HTTPException.
         """
 
-        logger.info("Getting user from token.")
         data = jwt.decode(token, config.SECRET_KEY, config.JWT_ENCR_ALGORITHM)
         now = dt.datetime.now(tz=config.TIMEZONE)
         valid_till = dt.datetime.fromisoformat(data["valid_till_ISO"])
 
         if now > valid_till:
-            logger.error("Token expired.")
-            logger.debug(f"Token valid till: {valid_till.isoformat()}"
-                         f" now: {now.isoformat()}")
             raise exc.TokenExpiredError
 
         return cls(**data)
@@ -113,7 +105,9 @@ class User(BaseModel):
     def verify_password(self, password: str) -> bool:
         return bcrypt_sha256.verify(password, self.password_hash)
 
-    def generate_access_token(self, expire_in: dt.timedelta = config.TOKEN_TIMEOUT_TD) -> str:
+    def generate_access_token(self, expire_in: dt.timedelta | None = None) -> str:
+        if expire_in is None:
+            expire_in = config.TOKEN_TIMEOUT_TD
         expire_ts = dt.datetime.now(tz=config.TIMEZONE) + expire_in
         data = self.dict()
         data["valid_till_ISO"] = expire_ts.isoformat()
