@@ -9,6 +9,7 @@ import { useState } from "react";
 
 export const CountDownTimer = () => {
   const { count: countDown, startCountDown, stopCountDown } = useCountDown();
+  const initialCount = useAppSelector((s) => s.countDown.initialCount);
   const isDisabled = useAppSelector((s) => s.countDown.isDisabled);
   const springMotion = {
     to: [{ x: 4 }, { x: -4 }, { x: 0 }, { x: 4 }, { x: -4 }, { x: 0 }],
@@ -18,6 +19,11 @@ export const CountDownTimer = () => {
     from: { x: 0 },
   }));
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const showResetDialogWrapper = () => {
+    if (countDown < initialCount) {
+      setShowResetDialog(true);
+    }
+  };
 
   const dispatch = useAppDispatch();
 
@@ -29,6 +35,10 @@ export const CountDownTimer = () => {
           setShowResetDialog(false);
           dispatch(safeResetCountDown());
         }}
+        onSecondOption={() => {
+          dispatch(resetCountDown());
+          setShowResetDialog(false);
+        }}
         onCancel={() => setShowResetDialog(false)}
       />
 
@@ -37,7 +47,7 @@ export const CountDownTimer = () => {
         actions={[
           <div
             className="danger"
-            onClick={() => !isDisabled && setShowResetDialog(true)}
+            onClick={() => !isDisabled && showResetDialogWrapper()}
           >
             reset
           </div>,

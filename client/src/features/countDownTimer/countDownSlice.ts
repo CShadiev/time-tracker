@@ -114,16 +114,17 @@ export const validateCountDown = (): AppThunk => {
  * @returns void
  */
 export const safeResetCountDown = (): AppThunk => {
-  return (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const state = getState();
 
     if (state.countDown.initialCount > state.countDown.count) {
       if (state.taskPanel.selectedItem) {
-        saveSessionMutationFn({
+        console.log("saving session");
+        await saveSessionMutationFn({
           initialCount: state.countDown.initialCount - state.countDown.count,
           taskId: state.taskPanel.selectedItem,
         });
-        queryClient.refetchQueries(["sessions"]);
+        queryClient.invalidateQueries({ queryKey: ["sessions"] });
       }
       dispatch(resetCountDown());
     }

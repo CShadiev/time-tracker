@@ -11,6 +11,8 @@ import { getProjectsQuery } from "../../api/tasks";
 import axios from "axios";
 import { apiBase } from "../../app/config";
 import { SwitchNotification } from "../countDownTimer/switchNotification";
+import { resetCountDown } from "../countDownTimer/countDownSlice";
+import { set } from "date-fns";
 
 export const TaskPanel: FC = () => {
   const queryClient = useQueryClient();
@@ -69,6 +71,10 @@ export const TaskPanel: FC = () => {
       <SwitchNotification
         open={!!switchObject}
         onCancel={() => {
+          setSwitchObject(null);
+        }}
+        onSecondOption={() => {
+          dispatch(resetCountDown());
           setSwitchObject(null);
         }}
         onSuccess={() => {

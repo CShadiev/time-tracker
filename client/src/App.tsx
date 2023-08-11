@@ -10,16 +10,21 @@ import { AuthInterceptor } from "./features/auth/authInterceptor";
 
 export const App = () => {
   return (
-    <div className={"app-container"}>
-      <ConfigProvider theme={themeConfig}>
-        <ToastContainer />
-        <AuthInterceptor />
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </ConfigProvider>
-    </div>
+    <>
+      <div className="app-header">
+        <div>Time Tracker</div>
+      </div>
+      <div className={"app-container"}>
+        <ConfigProvider theme={themeConfig}>
+          <ToastContainer />
+          <AuthInterceptor />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
+          </Routes>
+        </ConfigProvider>
+      </div>
+    </>
   );
 };

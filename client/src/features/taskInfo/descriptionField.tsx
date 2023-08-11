@@ -17,13 +17,12 @@ export const DescriptionField: FC<Props> = (props) => {
   const modifyDescriptionMutation = useMutation({
     mutationFn: modifyItemMutationFn,
     onSuccess: () => {
-      console.log("invalidateQueries, key: ", task?.key);
       queryClient.invalidateQueries(["tasks", task?.key]);
-      //   queryClient.invalidateQueries([[]])
     },
   });
 
   const saveValue = (value: string | null | undefined) => {
+    console.log("saveValue:", value);
     if (!task) {
       return;
     }
@@ -50,7 +49,7 @@ export const DescriptionField: FC<Props> = (props) => {
     }
   };
 
-  // save on 'enter'
+  // save on 'ctrl + enter'
   const keyDownHandler = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && e.ctrlKey) {
       if (inEdit) {

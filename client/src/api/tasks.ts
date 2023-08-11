@@ -30,7 +30,7 @@ export const modifyItemMutationFn = async (params: {
   if (label) {
     body.label = label;
   }
-  if (description) {
+  if (description !== undefined) {
     body.description = description;
   }
   if (expected_time) {

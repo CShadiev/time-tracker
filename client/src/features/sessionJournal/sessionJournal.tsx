@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "antd";
 import { FC } from "react";
-import { apiBase } from "../../app/config";
 import { endOfDay, format, startOfDay } from "date-fns";
-import axios from "axios";
 import { GroupedSessions, SessionJournalItem } from "./sessionJournalTypes";
 import { getProjectsQuery } from "../../api/tasks";
 import { findNode } from "../utils";
@@ -13,15 +11,13 @@ import {
   Project,
   Task,
 } from "../taskPanel/taskPanelTypes";
+import { getSessionsQueryFn } from "../../api/sessions";
 
 export const SessionJournal: FC = () => {
-  const { data: sessions } = useQuery(["sessions"], async () => {
-    const resp = await axios.post(apiBase + "/session/", {
-      ts_start: startOfDay(new Date()).toISOString(),
-      ts_end: endOfDay(new Date()).toISOString(),
-    });
-    return resp.data as SessionJournalItem[];
-  });
+  const { data: sessions } = useQuery(
+    ["sessions", { start: startOfDay(new Date()), end: endOfDay(new Date()) }],
+    getSessionsQueryFn
+  );
   const { data: projects } = useQuery(["projects"], getProjectsQuery);
 
   if (!sessions || !projects) return null;
@@ -46,13 +42,16 @@ export const SessionJournal: FC = () => {
     return acc;
   }, {} as GroupedSessions);
 
+  const todayTotal = sessions?.reduce(
+    (acc, session) => acc + Math.floor(session.duration / 60),
+    0
+  );
+
   return (
-    <Card
-      title={"Journal"}
-      style={{
-        marginTop: "1rem",
-      }}
-    >
+    <Card title={"Journal"}>
+      <p>
+        <b>Total minutes today: {todayTotal}</b>
+      </p>
       {Object.entries(sessionsByTask).length === 0 && (
         <div className="placeholder">No sessions today</div>
       )}
