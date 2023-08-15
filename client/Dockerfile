@@ -3,6 +3,7 @@ COPY . /app
 
 WORKDIR /app
 RUN yarn install
+RUN npx update-browserslist-db@latest
 RUN yarn build
 
 FROM nginx
