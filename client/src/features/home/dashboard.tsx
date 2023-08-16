@@ -8,14 +8,13 @@ import { TaskPanel } from "../taskPanel/taskPanel";
 export const Dashboard: React.FC = () => {
   return (
     <>
-      {/* <DummyDataHandler /> */}
       <TaskPanel />
       <div style={{ display: "flex", marginLeft: "1em" }}>
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            width: "22em",
+            minWidth: "26rem",
           }}
         >
           <CountDownTimer />

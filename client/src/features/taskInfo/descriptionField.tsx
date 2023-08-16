@@ -3,6 +3,7 @@ import { FC, useRef, useState, useEffect } from "react";
 import { Subtask, Task } from "../taskPanel/taskPanelTypes";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { modifyItemMutationFn } from "../../api/tasks";
+import { descriptionValidator } from "./descriptionValidator";
 
 type Props = {
   task: Task | Subtask;
@@ -20,25 +21,27 @@ export const DescriptionField: FC<Props> = (props) => {
       queryClient.invalidateQueries(["tasks", task?.key]);
     },
   });
+  const validationResult = descriptionValidator(tempValue);
 
   const saveValue = (value: string | null | undefined) => {
-    console.log("saveValue:", value);
     if (!task) {
       return;
     }
 
-    if (value === null || value === undefined) {
+    const validationResult = descriptionValidator(value);
+    if (!validationResult.isValid) {
       return;
     }
 
-    if (value === task.description) {
+    // make sure we don't send the same value
+    if (validationResult.value === task.description) {
       return;
     }
 
     modifyDescriptionMutation.mutate({
       key: task.key,
       level: task.level,
-      description: value,
+      description: validationResult.value,
     });
   };
 
@@ -53,8 +56,11 @@ export const DescriptionField: FC<Props> = (props) => {
   const keyDownHandler = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && e.ctrlKey) {
       if (inEdit) {
-        saveValue(tempValue);
-        setInEdit(false);
+        // do not exit edit mode if validation fails
+        if (validationResult.isValid) {
+          saveValue(tempValue);
+          setInEdit(false);
+        }
       }
     } else if (e.key === "Escape") {
       if (inEdit) {
@@ -81,33 +87,54 @@ export const DescriptionField: FC<Props> = (props) => {
   }, [inEdit]);
 
   return (
-    <div className="editable-field" onClick={() => !inEdit && setInEdit(true)}>
-      {!inEdit && (
-        <div className="task-description">
-          {(task?.description &&
-            task.description.split(/\r?\n/g).map((j, i) => (
-              <div
-                className="description-block"
-                key={`task-description-line-${i}`}
-              >
-                {j}
-                <br />
-              </div>
-            ))) ||
-            "No description"}
+    <>
+      <div
+        className="editable-field"
+        onClick={() => !inEdit && setInEdit(true)}
+      >
+        {!inEdit && (
+          <div className="task-description">
+            {(task?.description &&
+              task.description.split(/\r?\n/g).map((j, i) => (
+                <div
+                  className="description-block"
+                  key={`task-description-line-${i}`}
+                >
+                  {j}
+                  <br />
+                </div>
+              ))) ||
+              "Click here to edit description"}
+          </div>
+        )}
+        {inEdit && (
+          <Input.TextArea
+            ref={inputRef}
+            value={tempValue || undefined}
+            placeholder="Click here to edit description"
+            autoSize={{ minRows: 3, maxRows: 5 }}
+            onKeyDown={keyDownHandler}
+            onBlur={blurHandler}
+            onChange={changeHandler}
+            status={
+              descriptionValidator(tempValue).isValid ? undefined : "error"
+            }
+          />
+        )}
+      </div>
+      {inEdit && !validationResult.isValid && (
+        <div
+          className="danger"
+          style={{
+            marginTop: ".3rem",
+            fontSize: "0.8rem",
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          {validationResult.validationError}
         </div>
       )}
-      {inEdit && (
-        <Input.TextArea
-          ref={inputRef}
-          value={tempValue || undefined}
-          placeholder="No description"
-          autoSize={{ minRows: 3, maxRows: 5 }}
-          onKeyDown={keyDownHandler}
-          onBlur={blurHandler}
-          onChange={changeHandler}
-        />
-      )}
-    </div>
+    </>
   );
 };

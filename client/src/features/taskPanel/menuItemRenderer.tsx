@@ -1,16 +1,18 @@
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { ButtonAdd } from "./buttonAdd";
-import { MenuItem, PanelMenuItem } from "./taskPanelTypes";
+import { PanelMenuItem } from "./taskPanelTypes";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { Input, InputRef } from "antd";
-import { renameItem, setRenamingItem } from "./taskPanelSlice";
+import { setRenamingItem } from "./taskPanelSlice";
 import { ButtonRename } from "./buttonRename";
 import { ButtonRemove } from "./buttonRemove";
-import { labelValidator } from "./labelValidator";
+import { labelValidator } from "../taskInfo/labelValidator";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { modifyItemMutationFn } from "../../api/tasks";
-import { eventManager } from "react-toastify/dist/core";
 
+/**Renders projects, tasks, and subtasks in the menu panel.
+ * Handles renaming, adding, and removing items.
+ */
 export const MenuItemRenderer: FC<{
   item: PanelMenuItem;
 }> = (props) => {
@@ -45,6 +47,11 @@ export const MenuItemRenderer: FC<{
     // reset value to original
     setInputValue(item.label);
     dispatch(setRenamingItem(null));
+  };
+  const inputChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value.length <= 32) {
+      setInputValue(e.target.value);
+    }
   };
 
   // focus input on rename
@@ -105,7 +112,7 @@ export const MenuItemRenderer: FC<{
             ref={inputRef}
             value={inputValue}
             status={labelValidator(inputValue) ? "" : "error"}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={inputChangeHandler}
             onBlur={blurHandler}
             onClick={(e) => e.stopPropagation()}
           />

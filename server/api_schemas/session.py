@@ -68,7 +68,8 @@ def parse_session(data: DBSession | Iterable[DBSession]) -> "Session | list[Sess
     elif isinstance(data, Iterable):
         for entry in data:
             if isinstance(entry, DBSession):
-                entry.completed_at = entry.completed_at.replace(tzinfo=cfg.TIMEZONE)
+                entry.completed_at = entry.completed_at.replace(
+                    tzinfo=cfg.TIMEZONE)
             else:
                 raise TypeError("Invalid data type")
         return [Session.parse_obj(entry.__dict__) for entry in data]

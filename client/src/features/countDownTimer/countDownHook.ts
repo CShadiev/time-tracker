@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { WorkerOutgoingMessage } from "./countDownTimerTypes";
 import getWorker from "./workerInstance";
 import { saveSessionMutationFn } from "../../api/sessions";
+import { showCompleteNotification } from "./notification";
 
 export const useCountDown = () => {
   const initialCount = useAppSelector((s) => s.countDown.initialCount);
@@ -40,6 +41,7 @@ export const useCountDown = () => {
         }
         if (action === "FINISH_TIMER") {
           dispatch(finishCountDown());
+          showCompleteNotification();
           if (taskId) {
             addSessionMutation.mutate({ initialCount: initialCount, taskId });
           }

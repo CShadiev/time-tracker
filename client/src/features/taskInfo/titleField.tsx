@@ -2,7 +2,7 @@ import { useAppDispatch } from "../../app/hooks";
 import { FC, useState, useEffect, useRef, useCallback } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import { Button, Input } from "antd";
-import { labelValidator } from "../taskPanel/labelValidator";
+import { labelValidator } from "./labelValidator";
 import { Subtask, Task } from "../taskPanel/taskPanelTypes";
 import { modifyItemMutationFn } from "../../api/tasks";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -54,6 +54,8 @@ export const TitleField: FC<Props> = (props) => {
   };
 
   const changeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // it does not validate values on change
+    // validation is done on save only
     const value = e.target.value;
     setTempValue(value);
   };
@@ -103,7 +105,7 @@ export const TitleField: FC<Props> = (props) => {
           onKeyDown={keyDownHandler}
           onBlur={blurHandler}
           onChange={changeHandler}
-          status={labelValidator(tempValue) ? "" : "error"}
+          status={labelValidator(tempValue) ? undefined : "error"}
         />
       )}
       {isHovered && !inEdit && (

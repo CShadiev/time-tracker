@@ -33,6 +33,7 @@ export interface Subtask extends Omit<Task, "level" | "children"> {
 }
 
 export interface TaskPanelState {
+  aboutDrawerOpen: boolean;
   menuItems: Project[];
   openKeys: string[];
   renamingItem: string | null;

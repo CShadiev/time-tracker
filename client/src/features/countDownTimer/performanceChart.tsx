@@ -18,11 +18,19 @@ import {
 } from "recharts";
 import { Card } from "antd";
 import { useState } from "react";
+import { useEventListener } from "usehooks-ts";
 
 export const PerformanceChart = () => {
   const [start, setStart] = useState<Date>(subDays(startOfDay(new Date()), 6));
   const end = endOfDay(new Date());
   const { data } = useQuery(["sessions", { start, end }], getSessionsQueryFn);
+  const [isHovered, setIsHovered] = useState(false);
+  const wheelEventListener = useEventListener(
+    "wheel",
+    (e) => isHovered && e.preventDefault(),
+    undefined,
+    { passive: false }
+  );
 
   let index = 0;
   const days = new Map<string, number>();
@@ -54,7 +62,15 @@ export const PerformanceChart = () => {
 
   return (
     <Card title={"Performance"} bodyStyle={{ padding: "0" }}>
-      <div onWheel={handelWheel}>
+      {/* {sessionsByDay && sessionsByDay.length === 0 && (
+        <div style={{ padding: "2rem", color: "GrayText" }}>No data yet</div>
+      )} */}
+
+      <div
+        onWheelCapture={handelWheel}
+        onMouseOver={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <ResponsiveContainer width="100%" height={100}>
           <AreaChart
             data={sessionsByDay}

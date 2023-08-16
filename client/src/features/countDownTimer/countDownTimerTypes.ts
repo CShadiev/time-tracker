@@ -26,7 +26,8 @@ export type WorkerIncomingMessage =
 export type WorkerOutgoingMessage =
   | WorkerCountDownMessage
   | WorkerPlayNotificationMessage
-  | WorkerFinishTimerMessage;
+  | WorkerFinishTimerMessage
+  | WorkerShowPushNotificationMessage;
 
 export interface WorkerStartTimerMessage {
   action: "START_TIMER";
@@ -48,4 +49,8 @@ export interface WorkerPlayNotificationMessage {
 
 export interface WorkerFinishTimerMessage {
   action: "FINISH_TIMER";
+}
+
+export interface WorkerShowPushNotificationMessage {
+  action: "SHOW_PUSH_NOTIFICATION";
 }

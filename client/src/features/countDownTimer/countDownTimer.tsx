@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { resetCountDown, safeResetCountDown } from "./countDownSlice";
 import { useSpring, animated } from "@react-spring/web";
 import { SwitchNotification } from "./switchNotification";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const CountDownTimer = () => {
   const { count: countDown, startCountDown, stopCountDown } = useCountDown();
@@ -26,6 +26,12 @@ export const CountDownTimer = () => {
   };
 
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   return (
     <div className="countdown-timer">

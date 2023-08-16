@@ -14,6 +14,7 @@ import { safeResetCountDown } from "../countDownTimer/countDownSlice";
 import { UpdateItemPayload } from "./taskPanelTypes";
 
 const initialState: TaskPanelState = {
+  aboutDrawerOpen: false,
   menuItems: [],
   openKeys: [],
   renamingItem: null,
@@ -123,6 +124,9 @@ export const counterSlice = createSlice({
 
       Object.assign(node, action.payload);
     },
+    setAboutDrawerOpen: (state, action: PayloadAction<boolean>) => {
+      state.aboutDrawerOpen = action.payload;
+    },
   },
 });
 
@@ -138,6 +142,7 @@ export const {
   _selectItem,
   _selectLevel,
   updateItem,
+  setAboutDrawerOpen,
 } = counterSlice.actions;
 
 export const selectCurrentItem = (state: RootState): string | null => {

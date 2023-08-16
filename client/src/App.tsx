@@ -7,13 +7,14 @@ import { Home } from "./features/home/home";
 import { Dashboard } from "./features/home/dashboard";
 import { ToastContainer } from "react-toastify";
 import { AuthInterceptor } from "./features/auth/authInterceptor";
+import { Header } from "./features/home/header";
+import { AboutDrawer } from "./features/home/about";
 
 export const App = () => {
   return (
     <>
-      <div className="app-header">
-        <div>Time Tracker</div>
-      </div>
+      <Header />
+      <AboutDrawer />
       <div className={"app-container"}>
         <ConfigProvider theme={themeConfig}>
           <ToastContainer />

@@ -12,7 +12,6 @@ import axios from "axios";
 import { apiBase } from "../../app/config";
 import { SwitchNotification } from "../countDownTimer/switchNotification";
 import { resetCountDown } from "../countDownTimer/countDownSlice";
-import { set } from "date-fns";
 
 export const TaskPanel: FC = () => {
   const queryClient = useQueryClient();
@@ -84,7 +83,12 @@ export const TaskPanel: FC = () => {
           setSwitchObject(null);
         }}
       />
-      <Card title="Tasks">
+      <Card
+        title="Tasks"
+        style={{
+          width: "26rem",
+        }}
+      >
         <div className="button-panel">
           <Button
             shape="default"
