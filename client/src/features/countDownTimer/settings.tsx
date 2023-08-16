@@ -30,7 +30,11 @@ export const Settings = () => {
   const dispatch = useAppDispatch();
 
   const durationChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value && parseInt(e.target.value) > 0) {
+    if (
+      e.target.value &&
+      parseInt(e.target.value) > 0 &&
+      parseInt(e.target.value) < 60
+    ) {
       if (countDown !== duration) {
         actionFn = () => setDuration(parseInt(e.target.value) * 60);
         setShowSwitchNotification(true);

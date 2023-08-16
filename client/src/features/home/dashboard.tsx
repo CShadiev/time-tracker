@@ -14,7 +14,7 @@ export const Dashboard: React.FC = () => {
           style={{
             display: "flex",
             flexDirection: "column",
-            minWidth: "26rem",
+            width: "24rem",
           }}
         >
           <CountDownTimer />
