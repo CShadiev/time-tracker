@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import String, ForeignKey, DateTime, Integer
 from sqlalchemy import Boolean
 from mysql_server import MySQLServerBase
@@ -32,6 +33,7 @@ class DBTask(MySQLServerBase):
     label: Mapped[str] = mapped_column(String(32))
     level: Mapped[str] = mapped_column(String(32))
     project_id: Mapped[str] = mapped_column(ForeignKey(DBProject.key))
+    project_obj: Mapped[DBProject] = relationship()
     description: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -45,6 +47,7 @@ class DBSession(MySQLServerBase):
 
     key: Mapped[str] = mapped_column(String(36), primary_key=True)
     task_id: Mapped[str] = mapped_column(ForeignKey(DBTask.key))
+    task_obj: Mapped[DBTask] = relationship()
     completed_at: Mapped[datetime]
     duration: Mapped[int]
     user: Mapped[str] = mapped_column(ForeignKey(DBUser.username))

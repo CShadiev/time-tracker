@@ -1,5 +1,6 @@
 from mysql_server import database
 from mysql_server.schemas import DBSession
+from mysql_server.schemas import DBTask, DBProject
 from sqlalchemy import select
 from pydantic import BaseModel, Field
 from pydantic import validator
@@ -35,6 +36,8 @@ class Session(BaseModel):
 
     key: str = Field(default_factory=uuid4)
     task_id: str
+    task: str
+    project: str
     completed_at: dt.datetime
     duration: int
     user: Optional[str]
@@ -63,16 +66,30 @@ def parse_session(data: DBSession | Iterable[DBSession]) -> "Session | list[Sess
     """
     if isinstance(data, DBSession):
         data.completed_at = data.completed_at.replace(tzinfo=cfg.TIMEZONE)
-        return Session.parse_obj(data.__dict__)
+        return Session.parse_obj(
+            {
+                **data.__dict__,
+                "task": data.task_obj.label,
+                "project": data.task_obj.project_obj.label,
+            }
+        )
 
     elif isinstance(data, Iterable):
         for entry in data:
             if isinstance(entry, DBSession):
-                entry.completed_at = entry.completed_at.replace(
-                    tzinfo=cfg.TIMEZONE)
+                entry.completed_at = entry.completed_at.replace(tzinfo=cfg.TIMEZONE)
             else:
                 raise TypeError("Invalid data type")
-        return [Session.parse_obj(entry.__dict__) for entry in data]
+        return [
+            Session.parse_obj(
+                {
+                    **entry.__dict__,
+                    "task": entry.task_obj.label,
+                    "project": entry.task_obj.project_obj.label,
+                }
+            )
+            for entry in data
+        ]
     else:
         raise TypeError("Invalid data type")
 
