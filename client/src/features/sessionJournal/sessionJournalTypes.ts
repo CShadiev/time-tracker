@@ -2,6 +2,8 @@ export interface SessionJournalItem {
   key: string;
   duration: number; // in seconds
   task_id: string;
+  task: string;
+  project: string;
   completed_at: string; // iso string with timezone
   user: string; // username
 }

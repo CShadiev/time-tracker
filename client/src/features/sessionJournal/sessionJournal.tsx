@@ -2,15 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card } from "antd";
 import { FC } from "react";
 import { endOfDay, format, startOfDay } from "date-fns";
-import { GroupedSessions, SessionJournalItem } from "./sessionJournalTypes";
-import { getProjectsQuery } from "../../api/tasks";
-import { findNode } from "../utils";
-import {
-  MenuItem,
-  PanelMenuItem,
-  Project,
-  Task,
-} from "../taskPanel/taskPanelTypes";
+import { GroupedSessions } from "./sessionJournalTypes";
 import { getSessionsQueryFn } from "../../api/sessions";
 
 export const SessionJournal: FC = () => {
@@ -18,23 +10,14 @@ export const SessionJournal: FC = () => {
     ["sessions", { start: startOfDay(new Date()), end: endOfDay(new Date()) }],
     getSessionsQueryFn
   );
-  const { data: projects } = useQuery(["projects"], getProjectsQuery);
 
-  if (!sessions || !projects) return null;
+  if (!sessions) return null;
 
   const sessionsByTask = sessions?.reduce((acc, session) => {
     if (!acc[session.task_id]) {
-      const task = findNode(
-        projects,
-        (node: PanelMenuItem) => node.key === session.task_id
-      ) as Task;
-      const project = findNode(
-        projects,
-        (node: MenuItem) => node.key === task.project_id
-      ) as Project;
       acc[session.task_id] = {
-        project: project.label,
-        task: task.label,
+        project: session.project,
+        task: session.task,
         sessions: [],
       };
     }

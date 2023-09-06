@@ -36,8 +36,6 @@ class Session(BaseModel):
 
     key: str = Field(default_factory=uuid4)
     task_id: str
-    task: str
-    project: str
     completed_at: dt.datetime
     duration: int
     user: Optional[str]
@@ -50,23 +48,32 @@ class Session(BaseModel):
         json_encoders = {dt.datetime: lambda v: v.isoformat()}
 
 
+class ExtendedSession(Session):
+    """Session object with additional fields."""
+
+    task: str
+    project: str
+
+
 @overload
-def parse_session(data: DBSession) -> "Session":
+def parse_session(data: DBSession) -> "ExtendedSession":
     ...
 
 
 @overload
-def parse_session(data: Iterable) -> list["Session"]:
+def parse_session(data: Iterable) -> list["ExtendedSession"]:
     ...
 
 
-def parse_session(data: DBSession | Iterable[DBSession]) -> "Session | list[Session]":
+def parse_session(
+    data: DBSession | Iterable[DBSession],
+) -> "ExtendedSession | list[ExtendedSession]":
     """Parses a DBSession object or a list of DBSession objects
     into a Session object or a list of Session objects, respectively.
     """
     if isinstance(data, DBSession):
         data.completed_at = data.completed_at.replace(tzinfo=cfg.TIMEZONE)
-        return Session.parse_obj(
+        return ExtendedSession.parse_obj(
             {
                 **data.__dict__,
                 "task": data.task_obj.label,
@@ -81,7 +88,7 @@ def parse_session(data: DBSession | Iterable[DBSession]) -> "Session | list[Sess
             else:
                 raise TypeError("Invalid data type")
         return [
-            Session.parse_obj(
+            ExtendedSession.parse_obj(
                 {
                     **entry.__dict__,
                     "task": entry.task_obj.label,
@@ -94,7 +101,9 @@ def parse_session(data: DBSession | Iterable[DBSession]) -> "Session | list[Sess
         raise TypeError("Invalid data type")
 
 
-def get_many(user: str, ts_start: dt.datetime, ts_end: dt.datetime) -> list["Session"]:
+def get_many(
+    user: str, ts_start: dt.datetime, ts_end: dt.datetime
+) -> list["ExtendedSession"]:
     with database.create_session() as session:
         query = (
             select(DBSession)
