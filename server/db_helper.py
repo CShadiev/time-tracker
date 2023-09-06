@@ -18,7 +18,7 @@ class DBHelper:
     def __init__(self, config: DBConfig) -> None:
         if config.TYPE == "mysql":
             c_string = URL.create(
-                "mysql",
+                "mysql+mysqlconnector",
                 config.USER,
                 config.PASSWORD,
                 config.HOST,
