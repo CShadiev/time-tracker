@@ -124,7 +124,7 @@ def create(
 ) -> str:
     with database.create_session() as session:
         db_session = DBSession(
-            key=key,
+            key=str(key),
             task_id=task_id,
             completed_at=completed_at,
             duration=duration,
