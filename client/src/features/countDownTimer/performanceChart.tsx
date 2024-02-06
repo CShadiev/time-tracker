@@ -17,11 +17,17 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "antd";
-import { useState } from "react";
-import { useEventListener } from "usehooks-ts";
+import { useMemo, useState } from "react";
+import { useEventListener, useLocalStorage } from "usehooks-ts";
+
+const parseStartDay = (lookbackDays: number) => {
+  return subDays(startOfDay(new Date()), lookbackDays);
+};
 
 export const PerformanceChart = () => {
-  const [start, setStart] = useState<Date>(subDays(startOfDay(new Date()), 6));
+
+  const [lookbackDays, setLookbackDays] = useLocalStorage('performanceChartLookbackDays', 6);
+  const start = useMemo(() => parseStartDay(lookbackDays), [lookbackDays]);
   const end = endOfDay(new Date());
   const { data } = useQuery(["sessions", { start, end }], getSessionsQueryFn);
   const [isHovered, setIsHovered] = useState(false);
@@ -53,10 +59,10 @@ export const PerformanceChart = () => {
   const handelWheel = (e: React.WheelEvent) => {
     if (e.deltaY > 0) {
       if (differenceInDays(end, start) > 30) return;
-      setStart(subDays(start, 1));
+      setLookbackDays(lookbackDays + 1);
     } else {
-      if (differenceInDays(end, start) < 7) return;
-      setStart(subDays(start, -1));
+      if (differenceInDays(end, start) < 14) return;
+      setLookbackDays(lookbackDays - 1);
     }
   };
 

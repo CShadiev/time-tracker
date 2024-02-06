@@ -1,15 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { Card } from "antd";
 import { FC } from "react";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { GroupedSessions } from "./sessionJournalTypes";
-import { getSessionsQueryFn } from "../../api/sessions";
+import { useSessions } from "./useSessionsHook";
 
 export const SessionJournal: FC = () => {
-  const { data: sessions } = useQuery(
-    ["sessions", { start: startOfDay(new Date()), end: endOfDay(new Date()) }],
-    getSessionsQueryFn
-  );
+  const sessions = useSessions();
 
   if (!sessions) return null;
 
