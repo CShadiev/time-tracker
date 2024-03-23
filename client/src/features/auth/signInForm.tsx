@@ -12,16 +12,25 @@ export const SignInForm: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const params = new URLSearchParams(window.location.search);
+  const [triedUrlSignIn, setTriedUrlSignIn] = useState(false);
   const dispatch = useAppDispatch();
 
-  const signIn = useMutation(async () => {
-    const response = await axios.post(apiBase + "/users/token/", {
-      username: username,
-      password: password,
-    });
-    const respData: AccessTokenResponse = response.data;
-    localStorage.setItem("access_token", respData.access_token);
-    dispatch(setAccessToken(respData.access_token));
+  const signIn = useMutation({
+    mutationFn: async ({
+      username,
+      password,
+    }: {
+      username: string;
+      password: string;
+    }) => {
+      const response = await axios.post(apiBase + "/users/token/", {
+        username: username,
+        password: password,
+      });
+      const respData: AccessTokenResponse = response.data;
+      localStorage.setItem("access_token", respData.access_token);
+      dispatch(setAccessToken(respData.access_token));
+    },
   });
 
   const userNameHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,9 +44,14 @@ export const SignInForm: React.FC = () => {
   const allowSignin = username && password && !signIn.isLoading;
 
   useEffect(() => {
-    if (params.get("username")) setUsername(params.get("username") as string);
-    if (params.get("password")) setPassword(params.get("password") as string);
-    signIn.mutate();
+    const username = params.get("username");
+    const password = params.get("password");
+    if (username && password && signIn.isIdle && !triedUrlSignIn) {
+      console.log("signing in with url params");
+      console.log(username, password);
+      setTriedUrlSignIn(true);
+      signIn.mutate({ username, password });
+    }
   }, [params, signIn]);
 
   return (
@@ -46,7 +60,7 @@ export const SignInForm: React.FC = () => {
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           if (allowSignin) {
-            signIn.mutate();
+            signIn.mutate({ username, password });
           }
         }
       }}
@@ -82,7 +96,7 @@ export const SignInForm: React.FC = () => {
               <Button
                 type={"primary"}
                 disabled={!allowSignin}
-                onClick={() => signIn.mutate()}
+                onClick={() => signIn.mutate({ username, password })}
               >
                 Sign In
               </Button>
