@@ -1,6 +1,6 @@
 import { Button, Card, Col, Input, Row } from "antd";
 import "./auth.sass";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { apiBase } from "../../app/config";
@@ -11,6 +11,7 @@ import { setAccessToken } from "./authSlice";
 export const SignInForm: React.FC = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const params = new URLSearchParams(window.location.search);
   const dispatch = useAppDispatch();
 
   const signIn = useMutation(async () => {
@@ -32,6 +33,12 @@ export const SignInForm: React.FC = () => {
   };
 
   const allowSignin = username && password && !signIn.isLoading;
+
+  useEffect(() => {
+    if (params.get("username")) setUsername(params.get("username") as string);
+    if (params.get("password")) setPassword(params.get("password") as string);
+    signIn.mutate();
+  }, [params, signIn]);
 
   return (
     <div
